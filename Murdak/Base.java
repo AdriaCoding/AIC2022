@@ -25,6 +25,8 @@ public class Base {
 
             attack();
 
+            attackN();
+
             uc.yield();
         }
 
@@ -32,7 +34,8 @@ public class Base {
 
 
     void spawnUnits(){
-        if(true) trySpawnRanger();
+        if (data.nUnit % 3 == 2) trySpawnBarbarian();
+        else trySpawnRanger();
     }
 
     void trySpawnRanger() {
@@ -76,6 +79,27 @@ public class Base {
     public void attack() {
 
         UnitInfo[] unitsAround = uc.senseUnits(data.enemyTeam);
+        Location target = uc.getLocation();
+        float priority = 0;
+
+        for (UnitInfo unit : unitsAround) {
+
+            int unitPriority = 1;
+
+            if(!uc.canAttack(unit.getLocation())) continue;
+
+            if (unitPriority > priority) {
+                priority = unitPriority;
+                target = unit.getLocation();
+            }
+
+        }
+        if(!target.isEqual(uc.getLocation()) ) uc.attack(target);
+    }
+
+    public void attackN() {
+
+        UnitInfo[] unitsAround = uc.senseUnits(Team.NEUTRAL);
         Location target = uc.getLocation();
         float priority = 0;
 

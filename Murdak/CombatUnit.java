@@ -7,6 +7,7 @@ public class CombatUnit {
     UnitController uc;
     Data data;
     Tools tools;
+    Movement movement;
 
     void report() {
         reportMyself();
@@ -34,7 +35,7 @@ public class CombatUnit {
     void getChest(){
         ChestInfo[] chest = uc.senseChests();
         if (chest.length != 0){
-            Direction dir = tools.isAdjacent(chest[1].getLocation(),uc.getLocation());
+            Direction dir = tools.isAdjacent(chest[0].getLocation(),uc.getLocation());
             if(dir != Direction.ZERO){
                 if(uc.canOpenChest(dir)) uc.openChest(dir);
             }
@@ -42,15 +43,15 @@ public class CombatUnit {
     }
 
     void move(){
-        if(!Movement.doMicro() ){
-            Movement.explore();
+        if(!movement.doMicro() ){
+            movement.explore();
         }
     }
 
     void enterDungeon(){
         if (uc.senseTileTypeAtLocation(uc.getLocation()) == TileType.DUNGEON) return;
-        for (entrance : uc.senseVisibleTiles(TileType.DUNGEON_ENTRANCE)){
-            Direction dir = tools.isAdjacent(entrance.get.location(), uc.getLocation());
+        for (Location entrance : uc.senseVisibleTiles(TileType.DUNGEON_ENTRANCE)){
+            Direction dir = tools.isAdjacent(entrance, uc.getLocation());
             if(dir != Direction.ZERO){
                 if(uc.canEnterDungeon(dir,dir)) uc.enterDungeon(dir,dir);
             }

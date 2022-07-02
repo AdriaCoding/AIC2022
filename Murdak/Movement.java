@@ -98,13 +98,21 @@ public class Movement {
     boolean doMicro(){
 
         UnitInfo[] enemiesAround = uc.senseUnits(data.enemyTeam);
-        if (uc.canMove() && enemiesAround.length > 0) {
+        UnitInfo[] neutralsAround = uc.senseUnits(Team.NEUTRAL);
+
+        boolean combat = (enemiesAround.length + neutralsAround.length > 0);
+
+        if (uc.canMove() && combat) {
             MicroInfo[] micro = new MicroInfo[9];
             for (int i = 0; i < 9; ++i) {
                 micro[i] = new MicroInfo(uc.getLocation().add(data.dirs[i]));
             }
             for (int i = 0; i < Math.min(enemiesAround.length,10); ++i) {
                 UnitInfo enemy = enemiesAround[i];
+                for (MicroInfo m : micro) m.update(enemy);
+            }
+            for (int i = 0; i < Math.min(enemiesAround.length,10); ++i) {
+                UnitInfo enemy = neutralsAround[i];
                 for (MicroInfo m : micro) m.update(enemy);
             }
 

@@ -23,7 +23,6 @@ public class Tools {
         return data.dirs[randomNum];
     }
 
-    //
     Direction isAdjacent (Location loc, Location unit){
         if(unit.x-loc.x ==  1 && unit.x-loc.y ==  0) return Direction.EAST;
         if(unit.x-loc.x ==  0 && unit.x-loc.y ==  1) return Direction.SOUTH;
