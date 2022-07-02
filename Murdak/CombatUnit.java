@@ -22,7 +22,26 @@ public class CombatUnit {
         uc.writeOnSharedArray(data.unitResetCh, 0);
     }
 
+    void getShrine(){
+        for(ShrineInfo shrines : uc.senseShrines()){
+            if(shrines.getOwner() != data.allyTeam){
+                if(uc.canAttack()) uc.attack(shrines.getLocation());
+            }
+        }
+
+    }
+
+    void getChest(){
+        ChestInfo[] chest = uc.senseChests();
+        if (chest.length != 0){
+
+        }
+    }
+
+    void openchest()
+
     public int targetPriority(UnitInfo unit) {
+        if(unit.getType() == UnitType.CLERIC)       return 8;
         if(unit.getType() == UnitType.ASSASSIN)     return 7;
         if(unit.getType() == UnitType.MAGE)         return 6;
         if(unit.getType() == UnitType.EXPLORER)     return 5;
