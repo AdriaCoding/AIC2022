@@ -8,6 +8,8 @@ public class CombatUnit {
     Data data;
     Tools tools;
 
+    Movement movement;
+
     void report() {
         reportMyself();
         //reportEnemies();
@@ -33,12 +35,16 @@ public class CombatUnit {
 
     void getChest(){
         ChestInfo[] chest = uc.senseChests();
-        if (chest.length != 0){
-
-        }
+        if (chest.length != 0);
     }
 
-    void openchest()
+
+    void move(){
+        if(!movement.doMicro() ){
+            movement.explore();
+        }
+
+    }
 
     public int targetPriority(UnitInfo unit) {
         if(unit.getType() == UnitType.CLERIC)       return 8;

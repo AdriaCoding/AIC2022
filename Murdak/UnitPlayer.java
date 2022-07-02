@@ -15,6 +15,10 @@ public class UnitPlayer {
 				Ranger ranger = new Ranger(uc);
 				ranger.run();
 			}
+			else if (uc.getType() == UnitType.BARBARIAN	) {
+				Barbarian barbarian = new Barbarian(uc);
+				barbarian.run();
+			}
 
 			uc.yield(); //End of turn
 		}

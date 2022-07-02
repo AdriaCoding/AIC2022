@@ -7,6 +7,7 @@ public class Data {
     UnitController uc;
     Tools tools;
 
+    //GENERAL INFO
     Direction[] dirs = Direction.values();
     int ID;                     UnitType type;
     Location allyBase;          Location enemyBase;
@@ -14,6 +15,9 @@ public class Data {
     int currentRound;           int spawnRound;                 int turnsAlive;
     int nUnit;                  int nCombatUnit;
     int x;                      int y;                          int z;
+
+    //CHARACTER SPECIFIC INFO
+    Direction prefDir;
 
     //CHANNELS
     int unitCh,             unitReportCh,           unitResetCh;            // Ch 0, 1, 2
@@ -24,7 +28,11 @@ public class Data {
         ID = uc.getInfo().getID();
         type = uc.getType();
         allyTeam = uc.getTeam();
+        enemyTeam = uc.getOpponent();
         currentRound = uc.getRound();
+
+        //Explorer initialization
+        prefDir = tools.randomDir();
     }
 
     // This function is called once per turn

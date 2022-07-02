@@ -54,9 +54,28 @@ public class Base {
         }
     }
 
+    void trySpawnBarbarian() {
+        boolean done = false;
+        for (Direction dir : data.dirs) {
+            if (!done && uc.canSpawn(UnitType.BARBARIAN, dir)) {
+                uc.spawn(UnitType.BARBARIAN,dir);
+                // Report to the Comm Channel
+                uc.writeOnSharedArray(data.unitReportCh, uc.readOnSharedArray(data.unitReportCh) + 1);
+                //uc.write(data.rangerReportCh, uc.read(data.rangerReportCh) + 1);
+                // Reset Next Slot
+                uc.writeOnSharedArray(data.unitResetCh, 0);
+                //uc.write(data.rangerResetCh, 0);
+                // Update current data
+                data.nUnit = data.nUnit + 1;
+                //data.nRanger = data.nRanger + 1;
+                done = true;
+            }
+        }
+    }
+
     public void attack() {
 
-        UnitInfo[] unitsAround = uc.senseUnits(data.allyTeam);
+        UnitInfo[] unitsAround = uc.senseUnits(data.enemyTeam);
         Location target = uc.getLocation();
         float priority = 0;
 

@@ -1,10 +1,13 @@
 package Murdak;
 
-import aic2022.user.*;
+import aic2022.user.Location;
+import aic2022.user.UnitController;
+import aic2022.user.UnitInfo;
+import aic2022.user.UnitStat;
 
-public class Ranger extends CombatUnit {
+public class Barbarian extends CombatUnit {
 
-    public Ranger (UnitController _uc) {
+    public Barbarian (UnitController _uc) {
         this.uc = _uc;
         this.data = new Data(uc);
         this.tools = new Tools(uc, data);
