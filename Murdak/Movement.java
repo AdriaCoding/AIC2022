@@ -6,6 +6,7 @@ public class Movement {
 
     UnitController uc;
     Data data;
+    Tools tools;
 
     public Movement(UnitController _uc, Data _data) {
         this.uc = _uc;
@@ -97,66 +98,87 @@ public class Movement {
 
     boolean doMicro(){
 
-        UnitInfo[] enemiesAround = uc.senseUnits(data.enemyTeam);
-        UnitInfo[] neutralsAround = uc.senseUnits(Team.NEUTRAL);
+        UnitInfo[] unitsAround = uc.senseUnits();
 
-        boolean combat = (enemiesAround.length + neutralsAround.length > 0);
+        boolean combat = false;
+
+
+
+        for (UnitInfo u : unitsAround) if (u.getTeam().equals(data.enemyTeam) || u.getTeam().equals(Team.NEUTRAL)) {
+            combat = true;
+        }
+
+
 
         if (uc.canMove() && combat) {
+
+            //uc.println("Round:"+data.currentRound+", unit n "+uc.getInfo().getID()+": I'm doing micro");
+
             MicroInfo[] micro = new MicroInfo[9];
             for (int i = 0; i < 9; ++i) {
                 micro[i] = new MicroInfo(uc.getLocation().add(data.dirs[i]));
             }
-            for (int i = 0; i < Math.min(enemiesAround.length,10); ++i) {
-                UnitInfo enemy = enemiesAround[i];
+
+            //TODO: actualizar todas las casillas que ve un enemigo a la vez.
+            for (int i = 0; i < Math.min(unitsAround.length,10); ++i) {
+                UnitInfo enemy = unitsAround[i];
+                if(enemy.getTeam() == data.allyTeam) continue;
                 for (MicroInfo m : micro) m.update(enemy);
             }
-            for (int i = 0; i < Math.min(enemiesAround.length,10); ++i) {
-                UnitInfo enemy = neutralsAround[i];
-                for (MicroInfo m : micro) m.update(enemy);
-            }
 
-            //Siempre nos podemos quedar quietos
-            int bestIndex = 8;
+            int bestIndex = 0; float maxPreference = -1000;
 
-            for (int i = 8; i >= 0; --i) {
-                if (!uc.canMove( data.dirs[i]) ) continue;
-
-                if (uc.getType() == UnitType.RANGER || uc.getType() == UnitType.MAGE) {
-                    if (micro[i].isBetterRanged(micro[bestIndex])) bestIndex = i;
+            for (int i = 0; i < 8; ++i){
+                MicroInfo m = micro[i];
+                if (uc.getType() == UnitType.BARBARIAN){
+                    float pref = m.BarbarianPreference();
+                    if (pref > maxPreference){maxPreference = pref; bestIndex = i;}
                 }
-
-                if (uc.getType() == UnitType.BARBARIAN || uc.getType() == UnitType.KNIGHT) {
-                    if (micro[i].isBetterMelee(micro[bestIndex])) bestIndex = i;
+                if (uc.getType() == UnitType.RANGER){
+                    float pref = m.RangerPreference();
+                    if (pref > maxPreference){maxPreference = pref; bestIndex = i;}
                 }
             }
+            uc.println("bestIndex: " + bestIndex + ", preference: " + maxPreference);
 
-            uc.move(data.dirs[bestIndex]);
+            if(uc.canMove(data.dirs[bestIndex]) ) uc.move(data.dirs[bestIndex]);
             return true;
         }
-
         return false;
-
     }
 
     class MicroInfo {
+
+        //If we can move there or not. very important check
+        boolean canMoveThere = false;
         float maxDamage = 0;
-        float minDistToEnemy = 1000;
         float minEnemyHealth = 1000;
+        //If we can attack from this location.
         boolean canAttack = false;
-        boolean isDiagonal = false;
-        //boolean tooCloseToEnemyBase = false;
+        //If we can kill an enemy from this location.
+        boolean canLastHit = false;
+        //if we are closer to the enemy than we are now
+        boolean closerToEnemy = false;
+        //moving diagonally is more expensive, so we try to avoid it.
+        boolean isDiagonal;
+        //TODO implementar checks para la base enemiga.
+        boolean tooCloseToEnemyBase = false;
+
         //boolean onRouteToTarget = false;
 
         Location loc;
 
         public MicroInfo(Location _loc) {
+
             this.loc = _loc;
 
-            if (loc.directionTo(uc.getLocation()) == Direction.NORTHEAST || loc.directionTo(uc.getLocation()) == Direction.NORTHWEST ||
-                    loc.directionTo(uc.getLocation()) == Direction.SOUTHEAST || loc.directionTo(uc.getLocation()) == Direction.SOUTHWEST) {
-                isDiagonal = true;
-            }
+            canMoveThere = uc.canMove(uc.getLocation().directionTo(loc) );
+
+            isDiagonal = (loc.directionTo(uc.getLocation()) == Direction.NORTHEAST ||
+                    loc.directionTo(uc.getLocation()) == Direction.NORTHWEST ||
+                    loc.directionTo(uc.getLocation()) == Direction.SOUTHEAST ||
+                    loc.directionTo(uc.getLocation()) == Direction.SOUTHWEST);
+
 
             // if(loc.distanceSquared(data.enemyBase) <= 50 ) tooCloseToEnemyBase = true;
 
@@ -165,121 +187,78 @@ public class Movement {
 
         void update(UnitInfo enemy) {
 
-            int d = loc.distanceSquared(enemy.getLocation());
+            if (!canMoveThere) return;
+
+            int distToEnemy = loc.distanceSquared(enemy.getLocation());
+            int currentDistToEnemy = uc.getLocation().distanceSquared(enemy.getLocation());
 
             float maxRange = uc.getType().getStat(UnitStat.ATTACK_RANGE);
             float minRange = uc.getType().getStat(UnitStat.MIN_ATTACK_RANGE);
-            boolean obstructed = uc.isObstructed(loc, enemy.getLocation());
 
-            if (d <= maxRange && d >= minRange && !obstructed) {
+            //TODO hace isObstructed de casillas que no puede ver, mirar porque.
+            //boolean obstructed = uc.isObstructed(loc, enemy.getLocation());
+            boolean obstructed = false;
 
-                canAttack = true;
-
-                if (minEnemyHealth > enemy.getHealth()) {
-                    minEnemyHealth = enemy.getHealth();
-                }
-
-            }
-
-            //Solo guardamos las distancias a unidades que podamos ver
-            if (d < minDistToEnemy && !obstructed) {
-                minDistToEnemy = d;
-            }
-
+            float enemyEffectiveHealth = enemy.getHealth() + enemy.getType().getStat(UnitStat.DEFENSE);
             float enemyMaxRange = enemy.getType().getStat(UnitStat.ATTACK_RANGE);
             float enemyMinRange = enemy.getType().getStat(UnitStat.MIN_ATTACK_RANGE);
+            //TODO mirar orientación de unidades enemigas.
 
-            if (d <= enemyMaxRange && d >= enemyMinRange) {
-                maxDamage += enemy.getType().getStat(UnitStat.ATTACK);
+            if (uc.canAttack(enemy.getLocation())) {
+                canAttack = true;
+                if (enemyEffectiveHealth <= uc.getType().getStat(UnitStat.ATTACK)) canLastHit = true;
+                if (minEnemyHealth > enemy.getHealth()) minEnemyHealth = enemy.getHealth();
+            }
+
+            if (!obstructed && distToEnemy < currentDistToEnemy) closerToEnemy = true;
+
+            if (distToEnemy <= enemyMaxRange && distToEnemy >= enemyMinRange) {
+                maxDamage += enemy.getType().getStat(UnitStat.ATTACK) - uc.getType().getStat(UnitStat.DEFENSE);
             }
         }
 
-        boolean isBetterRanged(Movement.MicroInfo mic) {
+        float BarbarianPreference() {
 
+            if (!canMoveThere) return -1000;
             float preference = 0;
 
-            float dmg = uc.getType().getStat(UnitStat.ATTACK);
-            int hp = uc.getInfo().getHealth();
+            //preference for attacking
+            if (canAttack) preference += 7;
+            //preference for killing blows
+            if (canLastHit) preference += 10;
+            //preference for taking less damage
+            preference -= maxDamage / 3;
+            //preference for getting close (+) or apart (-) from the enemy
+            if (closerToEnemy) preference += 0.25;
+            //diagonal movement detractor
+            if (isDiagonal) preference -= 0.5;
+            //Preference for not getting to close to the enemy base
+            if (tooCloseToEnemyBase) preference -= 20;
 
-            /*Prioriza no entrar en el rango de vision de la Base enemiga
-            if(!tooCloseToEnemyBase && mic.tooCloseToEnemyBase) preference += 20;
-            if(tooCloseToEnemyBase && !mic.tooCloseToEnemyBase) preference -= 20;
-            */
-
-            if (uc.canAttack()) {
-
-                //Prioriza poder atacar
-                if (canAttack && !mic.canAttack) preference += 7;
-                if (!canAttack && mic.canAttack) preference -= 7;
-
-                //Prioriza las casillas en las que puede hacer killingBlow
-                if (minEnemyHealth <= dmg && mic.minEnemyHealth > dmg) preference += 7;
-                if (minEnemyHealth > dmg && mic.minEnemyHealth <= dmg) preference -= 7;
-
-            }
-
-            //Prioriza las casillas en las que menos daño le pueden hacer
-            if (maxDamage < mic.maxDamage) preference += (mic.maxDamage - maxDamage) / 3;
-            if (maxDamage > mic.maxDamage) preference -= (maxDamage - mic.maxDamage) / 3;
-
-            /*prioriza alejarse del enemigo
-            if (minDistToEnemy > mic.minDistToEnemy) preference += 1;
-            if (minDistToEnemy < mic.minDistToEnemy) preference -= 1;
-            */
-
-            if (!isDiagonal && mic.isDiagonal) preference += 0.5;
-            if (isDiagonal && !mic.isDiagonal) preference -= 0.5;
-
-
-            //Si las posiciones son equivalentes mejor no cambiar
-            if (preference >= 0) return true;
-            return false;
+            return preference;
 
         }
 
-        boolean isBetterMelee(Movement.MicroInfo mic) {
+        float RangerPreference() {
 
+            if (!canMoveThere) return -1000;
             float preference = 0;
 
-            float dmg = uc.getType().getStat(UnitStat.ATTACK);
-            int hp = uc.getInfo().getHealth();
+            //preference for attacking
+            if (canAttack) preference += 5;
+            //preference for killing blows
+            if (canLastHit) preference += 7;
+            //preference for taking less damage
+            preference -= maxDamage / 5;
+            //preference for getting close (+) or apart (-) from the enemy
+            if (closerToEnemy) preference -= 0;
+            //diagonal movement detractor
+            if (isDiagonal) preference -= 0.5;
+            //Preference for not getting to close to the enemy base
+            if (tooCloseToEnemyBase) preference -= 20;
 
-                /*Prioriza no entrar en el rango de vision de la Base enemiga
-                if(!tooCloseToEnemyBase && mic.tooCloseToEnemyBase) preference += 20;
-                if(tooCloseToEnemyBase && !mic.tooCloseToEnemyBase) preference -= 20;
-                */
-
-            if (uc.canAttack()) {
-
-                //Prioriza poder atacar
-                if (canAttack && !mic.canAttack) preference += 10;
-                if (!canAttack && mic.canAttack) preference -= 10;
-
-                //Prioriza las casillas en las que puede hacer killingBlow
-                if (minEnemyHealth <= dmg && mic.minEnemyHealth > dmg) preference += 10;
-                if (minEnemyHealth > dmg && mic.minEnemyHealth <= dmg) preference -= 10;
-
-            }
-
-            //Prioriza las casillas en las que menos daño le pueden hacer
-            if (maxDamage < mic.maxDamage) preference += (mic.maxDamage - maxDamage) / 5;
-            if (maxDamage > mic.maxDamage) preference -= (maxDamage - mic.maxDamage) / 5;
-
-            //prioriza acercarse al enemigo
-            if (minDistToEnemy < mic.minDistToEnemy) preference += 1;
-            if (minDistToEnemy > mic.minDistToEnemy) preference -= 1;
-
-            if (!isDiagonal && mic.isDiagonal) preference += 0.5;
-            if (isDiagonal && !mic.isDiagonal) preference -= 0.5;
-
-
-            //Si las posiciones son equivalentes mejor no cambiar
-            if (preference >= 0) return true;
-            return false;
+            return preference;
 
         }
-
     }
-
-
 }
