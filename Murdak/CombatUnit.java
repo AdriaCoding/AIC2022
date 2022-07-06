@@ -26,12 +26,31 @@ public class CombatUnit {
     void getShrine(){
         for(ShrineInfo shrines : uc.senseShrines()){
             if(shrines.getOwner() != data.allyTeam){
-                if(uc.canAttack()) uc.attack(shrines.getLocation());
+                if(uc.canAttack(shrines.getLocation())){
+                    uc.attack(shrines.getLocation());
+                }
             }
         }
 
     }
 
+    // Should be used by explorers
+    void senseStuff(){
+        if (uc.senseTileTypeAtLocation(uc.getLocation()) == TileType.DUNGEON){
+
+            for(ChestInfo chest : uc.senseChests()){
+                data.saveChest(chest);
+            }
+        }
+        else{
+            for(Location loc : uc.getVisibleLocations()){
+                TileType tileType = uc.senseTileTypeAtLocation(loc);
+                if (tileType == TileType.SHRINE) data.saveShrine(loc);
+                if (tileType == TileType.DUNGEON_ENTRANCE) data.saveDungeon(loc);
+                            }
+        }
+
+    }
     void getChest(){
         ChestInfo[] chest = uc.senseChests();
         if (chest.length != 0){
@@ -43,7 +62,7 @@ public class CombatUnit {
     }
 
     void move(){
-        if(!movement.doMicro() ){
+        if(true){
             movement.explore();
         }
     }

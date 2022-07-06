@@ -34,7 +34,7 @@ public class Base {
 
 
     void spawnUnits(){
-        if (data.nUnit % 3 == 2) trySpawnBarbarian();
+        if (data.nUnits % 3 == 2) trySpawnBarbarian();
         else trySpawnRanger();
     }
 
@@ -50,7 +50,7 @@ public class Base {
                 uc.writeOnSharedArray(data.unitResetCh, 0);
                 //uc.write(data.rangerResetCh, 0);
                 // Update current data
-                data.nUnit = data.nUnit + 1;
+                data.nUnits = data.nUnits + 1;
                 //data.nRanger = data.nRanger + 1;
                 done = true;
             }
@@ -69,7 +69,7 @@ public class Base {
                 uc.writeOnSharedArray(data.unitResetCh, 0);
                 //uc.write(data.rangerResetCh, 0);
                 // Update current data
-                data.nUnit = data.nUnit + 1;
+                data.nUnits = data.nUnits + 1;
                 //data.nRanger = data.nRanger + 1;
                 done = true;
             }
