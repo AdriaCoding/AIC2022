@@ -175,8 +175,14 @@ public class Movement {
         boolean canLastHit = false;
         //if we are closer to the enemy than we are now
         boolean closerToEnemy = false;
+        //if we are farther to the enemy than we are now
+        boolean fartherToEnemy = false;
+        //if we are too close to attack to an enemy
+        boolean tooCloseToEnemy = false;
         //moving diagonally is more expensive, so we try to avoid it.
         boolean isDiagonal;
+        //TODO considerar el tipo de tile
+        TileType tile;
         //TODO implementar checks para la base enemiga.
         boolean tooCloseToEnemyBase = false;
 
@@ -190,7 +196,7 @@ public class Movement {
 
             this.loc = _loc;
 
-            canMoveThere = uc.canMove(uc.getLocation().directionTo(loc) );
+            canMoveThere = uc.canMove(uc.getLocation().directionTo(loc));
 
             isDiagonal = (loc.directionTo(uc.getLocation()) == Direction.NORTHEAST ||
                     loc.directionTo(uc.getLocation()) == Direction.NORTHWEST ||
@@ -213,10 +219,6 @@ public class Movement {
             float maxRange = uc.getType().getStat(UnitStat.ATTACK_RANGE);
             float minRange = uc.getType().getStat(UnitStat.MIN_ATTACK_RANGE);
 
-            //TODO hace isObstructed de casillas que no puede ver, mirar porque.
-            //boolean obstructed = uc.isObstructed(loc, enemy.getLocation());
-            boolean obstructed = false;
-
             float enemyEffectiveHealth = enemy.getHealth() + enemy.getType().getStat(UnitStat.DEFENSE);
             float enemyMaxRange = enemy.getType().getStat(UnitStat.ATTACK_RANGE);
             float enemyMinRange = enemy.getType().getStat(UnitStat.MIN_ATTACK_RANGE);
@@ -228,14 +230,16 @@ public class Movement {
                 if (minEnemyHealth > enemy.getHealth()) minEnemyHealth = enemy.getHealth();
             }
 
-            if (!obstructed && distToEnemy < currentDistToEnemy) closerToEnemy = true;
+            if (distToEnemy < currentDistToEnemy) closerToEnemy = true;
+            if (distToEnemy > currentDistToEnemy) fartherToEnemy = true;
+            if (distToEnemy < uc.getType().getStat(UnitStat.MIN_ATTACK_RANGE)) tooCloseToEnemy = true;
 
             if (distToEnemy <= enemyMaxRange && distToEnemy >= enemyMinRange) {
                 maxDamage += enemy.getType().getStat(UnitStat.ATTACK) - uc.getType().getStat(UnitStat.DEFENSE);
             }
         }
 
-        void updateAlly(){
+        void updateAlly() {
 
         }
 
@@ -249,9 +253,9 @@ public class Movement {
             //preference for killing blows
             if (canLastHit) preference += 10;
             //preference for taking less damage
-            preference -= maxDamage / 7;
+            preference -= maxDamage / 10;
             //preference for getting close (+) or apart (-) from the enemy
-            if (closerToEnemy) preference += 4;
+            if (closerToEnemy) preference += 10;
             //diagonal movement detractor
             if (isDiagonal) preference -= 0.5;
             //Preference for not getting to close to the enemy base
@@ -266,14 +270,18 @@ public class Movement {
             if (!canMoveThere) return -1000;
             float preference = 0;
 
+            //Run away from other archers
+            if (tooCloseToEnemy) preference -= 30;
             //preference for attacking
             if (canAttack) preference += 7;
             //preference for killing blows
             if (canLastHit) preference += 15;
             //preference for taking less damage
             preference -= maxDamage / 5;
-            //preference for getting close (+) or apart (-) from the enemy
-            if (closerToEnemy) preference -= 0.25;
+            //preference for getting close to the enemy
+            if (closerToEnemy) preference += 0;
+            //preference for getting away from the enemy
+            if (fartherToEnemy) preference += 0;
             //diagonal movement detractor
             if (isDiagonal) preference -= 0.5;
             //Preference for not getting to close to the enemy base
@@ -282,5 +290,31 @@ public class Movement {
             return preference;
 
         }
+
+
+        float ExplorerPreference() {
+
+            if (!canMoveThere) return -1000;
+            float preference = 0;
+
+            //preference for attacking
+            if (canAttack) preference += 5;
+            //preference for killing blows
+            if (canLastHit) preference += 25;
+            //preference for taking less damage
+            preference -= maxDamage / 4;
+            //preference for getting close to the enemy
+            if (closerToEnemy) preference -= 2;
+            //preference for getting away from the enemy
+            if (fartherToEnemy) preference += 2;
+            //diagonal movement detractor
+            if (isDiagonal) preference -= 0.5;
+            //Preference for not getting to close to the enemy base
+            if (tooCloseToEnemyBase) preference -= 20;
+
+            return preference;
+        }
     }
+
 }
+

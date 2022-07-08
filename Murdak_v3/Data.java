@@ -21,6 +21,8 @@ public class Data {
     //CONSTANTS
     int accumulationRound = 250;
     int shrineDistanceThreshold = 1800;
+    int archerLvlThreshold = 40;
+    int barbarianLvlThreshold = 40;
 
     //UNITS CHANNELS
     int unitCh,             unitReportCh,           unitResetCh;            // Ch 0, 1, 2

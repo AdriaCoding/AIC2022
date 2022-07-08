@@ -23,6 +23,8 @@ public class Ranger extends CombatUnit {
 
             attackN();
 
+            abilityOne();
+
             move();
 
             attack();
@@ -42,63 +44,29 @@ public class Ranger extends CombatUnit {
 
     }
 
+    void abilityOne(){
 
-    public void attack(){
+        UnitInfo[] units = uc.senseUnits(36,data.allyTeam, true);
 
-        UnitInfo[] enemiesAround = uc.senseUnits(data.enemyTeam);
-        Location target = uc.getLocation();
-        float priority = 0;
+        for (UnitInfo u : units){
+            if (u.getType() == UnitType.BARBARIAN || uc.getType() == UnitType.EXPLORER
+                || (u.getType() == UnitType.KNIGHT && u.getLevel() < 2) ){
+                if(uc.getInfo().getLevel() < 2){
+                    if(uc.canLevelUp() && uc.getReputation() > data.archerLvlThreshold ) uc.levelUp();
+                    return;
+                }
+                else if (uc.canUseFirstAbility( u.getLocation() ) ){
+                    uc.useFirstAbility(u.getLocation());
+                    return;
+                }
 
-        float attack = uc.getType().getStat(UnitStat.ATTACK);
-
-        for (UnitInfo unit : enemiesAround){
-
-            if(!uc.canAttack(unit.getLocation()) ) continue;
-
-            float enemyMaxHealth = unit.getType().getStat(UnitStat.MAX_HEALTH);
-
-            float unitPriority = targetPriority(unit);
-            //prioriza atacar a matar
-            if(unit.getHealth() <= attack) unitPriority += 50;
-            else unitPriority = unitPriority * (float)(enemyMaxHealth /unit.getHealth());
-
-            if (unitPriority > priority){
-                priority = unitPriority;
-                target = unit.getLocation();
             }
-        }
 
-        if (!target.isEqual(uc.getLocation()) ) uc.attack(target);
+        }
 
     }
 
-    public void attackN(){
 
-        UnitInfo[] enemiesAround = uc.senseUnits(Team.NEUTRAL);
-        Location target = uc.getLocation();
-        float priority = 0;
 
-        float attack = uc.getType().getStat(UnitStat.ATTACK);
-
-        for (UnitInfo unit : enemiesAround){
-
-            if(!uc.canAttack(unit.getLocation()) ) continue;
-
-            float enemyMaxHealth = unit.getType().getStat(UnitStat.MAX_HEALTH);
-
-            float unitPriority = targetPriority(unit);
-            //prioriza atacar a matar
-            if(unit.getHealth() <= attack) unitPriority += 50;
-            else unitPriority = unitPriority * (float)(enemyMaxHealth /unit.getHealth());
-
-            if (unitPriority > priority){
-                priority = unitPriority;
-                target = unit.getLocation();
-            }
-        }
-
-        if (!target.isEqual(uc.getLocation()) ) uc.attack(target);
-
-    }
 
 }
