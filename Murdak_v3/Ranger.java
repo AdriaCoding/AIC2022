@@ -52,7 +52,7 @@ public class Ranger extends CombatUnit {
             if (u.getType() == UnitType.BARBARIAN || uc.getType() == UnitType.EXPLORER
                 || (u.getType() == UnitType.KNIGHT && u.getLevel() < 2) ){
                 if(uc.getInfo().getLevel() < 2){
-                    if(uc.canLevelUp() && uc.getReputation() > data.archerLvlThreshold ) uc.levelUp();
+                    if(uc.canLevelUp() && uc.getReputation() > data.rangerLvlThreshold ) uc.levelUp();
                     return;
                 }
                 else if (uc.canUseFirstAbility( u.getLocation() ) ){

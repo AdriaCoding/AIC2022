@@ -21,7 +21,8 @@ public class Data {
     //CONSTANTS
     int accumulationRound = 250;
     int shrineDistanceThreshold = 1800;
-    int archerLvlThreshold = 40;
+
+    int rangerLvlThreshold = 40;
     int barbarianLvlThreshold = 40;
 
     //UNITS CHANNELS
@@ -122,10 +123,10 @@ public class Data {
 
     int saveShrine(ShrineInfo s) {
         Location loc = s.getLocation();
-        int distance = Math.abs(allyBase.x - loc.x) + Math.abs(allyBase.y - loc.y);
+        int dist = loc.distanceSquared(allyBase);
 
         //TODO
-        return distance;
+        return dist;
 
 
     }

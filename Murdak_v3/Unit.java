@@ -90,32 +90,4 @@ public class Unit {
             }
         }
     }
-
-    void senseStuff(){
-        Location unit_loc = uc.getLocation();
-        int unit_loc_code = uc.readOnSharedArray(tools.encodeLoc(unit_loc))%10;
-        if (unit_loc_code == 0 ) {
-            for (Location loc : uc.getVisibleLocations()) {
-                int locCode = tools.encodeLoc(loc);
-                int tileCode = uc.readOnSharedArray(locCode);
-                if (tileCode == 0) {
-                    uc.writeOnSharedArray(locCode, tools.tileType_code(uc.senseTileTypeAtLocation(loc)));
-                }
-                if (tools.getTileType(tileCode) == TileType.SHRINE) data.saveShrine(loc);
-                if (tools.getTileType(tileCode) == TileType.DUNGEON_ENTRANCE) data.saveDungeon(loc);
-                //little chivato
-                if(!loc.isEqual(tools.decodeLoc(locCode))){
-                    uc.println(loc.x +", " + loc.y + " Falla. El codi és: " + locCode + "\n");
-                }
-            }
-        }
-
-        if (unit_loc_code == tools.tileType_code(TileType.DUNGEON)) {
-            for (ChestInfo chest : uc.senseChests()) data.saveChest(chest);
-            float radius = uc.getInfo().getStat(UnitStat.VISION_RANGE);
-            int neutralUnits =  uc.senseUnits(Team.NEUTRAL).length;
-        }
-    }
-
-
 }

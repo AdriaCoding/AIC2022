@@ -20,6 +20,7 @@ public class CombatUnit extends Unit {
         uc.writeOnSharedArray(data.unitResetCh, 0);
     }
 
+    // Should be used by explorers
 
     void getChest(){
         ChestInfo[] chest = uc.senseChests(2);
@@ -56,4 +57,5 @@ public class CombatUnit extends Unit {
             }
         }
     }
+
 }

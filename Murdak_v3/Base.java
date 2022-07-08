@@ -74,13 +74,13 @@ public class Base extends Unit {
                 uc.spawn(UnitType.RANGER,dir);
                 // Report to the Comm Channel
                 uc.writeOnSharedArray(data.unitReportCh, uc.readOnSharedArray(data.unitReportCh) + 1);
-                //uc.write(data.rangerReportCh, uc.read(data.rangerReportCh) + 1);
+                uc.writeOnSharedArray(data.rangerReportCh, uc.readOnSharedArray(data.rangerReportCh) + 1);
                 // Reset Next Slot
                 uc.writeOnSharedArray(data.unitResetCh, 0);
-                //uc.write(data.rangerResetCh, 0);
+                uc.writeOnSharedArray(data.rangerResetCh, 0);
                 // Update current data
                 data.nUnits = data.nUnits + 1;
-                //data.nRanger = data.nRanger + 1;
+                data.nRangers = data.nRangers + 1;
                 done = true;
             }
         }
@@ -93,13 +93,13 @@ public class Base extends Unit {
                 uc.spawn(UnitType.BARBARIAN,dir);
                 // Report to the Comm Channel
                 uc.writeOnSharedArray(data.unitReportCh, uc.readOnSharedArray(data.unitReportCh) + 1);
-                //uc.write(data.rangerReportCh, uc.read(data.rangerReportCh) + 1);
+                uc.writeOnSharedArray(data.barbarianReportCh, uc.readOnSharedArray(data.barbarianReportCh) + 1);
                 // Reset Next Slot
                 uc.writeOnSharedArray(data.unitResetCh, 0);
-                //uc.write(data.rangerResetCh, 0);
+                uc.writeOnSharedArray(data.barbarianResetCh, 0);
                 // Update current data
                 data.nUnits = data.nUnits + 1;
-                //data.nRanger = data.nRanger + 1;
+                data.nBarbarians = data.nBarbarians + 1;
                 done = true;
             }
         }
@@ -111,13 +111,13 @@ public class Base extends Unit {
                 uc.spawn(UnitType.EXPLORER,dir);
                 // Report to the Comm Channel
                 uc.writeOnSharedArray(data.unitReportCh, uc.readOnSharedArray(data.unitReportCh) + 1);
-                //uc.write(data.rangerReportCh, uc.read(data.rangerReportCh) + 1);
+                uc.writeOnSharedArray(data.scoutReportCh, uc.readOnSharedArray(data.scoutReportCh) + 1);
                 // Reset Next Slot
                 uc.writeOnSharedArray(data.unitResetCh, 0);
-                //uc.write(data.rangerResetCh, 0);
+                uc.writeOnSharedArray(data.scoutResetCh, 0);
                 // Update current data
                 data.nUnits = data.nUnits + 1;
-                //data.nRanger = data.nRanger + 1;
+                data.nScouts = data.nScouts + 1;
                 done = true;
             }
         }

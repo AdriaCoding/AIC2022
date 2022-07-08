@@ -42,21 +42,16 @@ public class Tools {
     Map is at most 80*80, so we divide each coordinate by 80, take the remainders and join
     them to get a unique code for each location, "1xxyy", where xx and yy are 79 at most.
     The code is the channel where we will store all info about each location we explore.
-
     To be able to get back our location from the code, we need to save the quotients of the prior
     divisions. As coordinates will be 1000 at most, 1000/80 = 12.5, so quotients will be between
     0 and 12.
-
     Since there will be 20 empty spaces between channel 1xx79 and channel 1x(x+1)00, we will store
     there the x and y quotients of locations from 1xx00 to 1xx80, thus we have to store 8 numbers
     for each channel.
-
     We can codify qx0, qy0, qx1, qy1, qx2, qy2, qx3, and qy3 as one integer using base 13.
     We save N = qx1 + qy1*13 + qx2*13^2 + ... + qx4*13^6 + qy4*13^7. (remember q < 13).
-
     To later get the height H = 3 quotients, qx3 and qy3, we just have to take
     (N/13^(2H))%13 and (N/12^(2H+1))%13
-
     In conclusion, we represent the map between Channels 10000 and 17999. C:
      */
 
