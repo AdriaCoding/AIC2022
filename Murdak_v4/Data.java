@@ -15,22 +15,23 @@ public class Data {
     int currentRound;           int spawnRound;                 int turnsAlive;
     int x;                      int y;                          int z;
     Location enemyLoc;          boolean enemyFound = false;
+    Location enemyBaseLoc;      boolean enemyBaseFound = false;
 
     //CHARACTER SPECIFIC INFO
     Direction prefDir;
 
     //CONSTANTS
-    int accumulationRound = 250;
-    int scoutAccumulationRound = 100;
-    int shrineDistanceThreshold = 1800;
+    int accumulationRound = 250; //Round until we keep combat units around the base
+    int scoutAccumulationRound = 25; //Round until we keep scout around the base
+    int shrineDistanceThreshold = 1800; //Distance at which we start destroying shrines
 
-    int reinforcementDist = 4000;
-    int reinforcementRound = 75;
+    int reinforcementDist = 4000; //Max distance to walk to enemyLoc
+    int reinforcementRound = 150; //Round at which we start sending reinforcements
 
-    int seekChestDist = 49;
+    int seekChestDist = 49; //max distance at which scouts go open chests
 
-    int rangerLvlThreshold = 40;
-    int barbarianLvlThreshold = 40;
+    int rangerLvlThreshold = 40; //minimum reputation which we upgrade ranger
+    int barbarianLvlThreshold = 60; //minimum reputation which we upgrade barbarian
 
     //UNITS CHANNELS
     int unitCh,             unitReportCh,           unitResetCh;            // Ch 0, 1, 2
@@ -45,8 +46,8 @@ public class Data {
     //GENERAL CHANNELS
     int accumulationCh = 100; // Ch 100
     int baseLocationCh = 101; // Ch 101
-    int enemyFoundCh = 102;   //Ch 102
-    int enemyLocCh = 103;   //Ch 103
+    int enemyFoundCh = 102;         int enemyLocCh = 103;   //Ch 102 & 103
+    int enemyBaseFoundCh = 104;     int enemyBaseLocCh = 105;   //Ch 104 & 105
 
     // Unit Count Info
     int nUnits,     nScouts,      nBarbarians,     nRangers;
@@ -106,6 +107,9 @@ public class Data {
 
         enemyLoc   = tools.decodeLoc(uc.readOnSharedArray(enemyLocCh) );
         enemyFound = (uc.readOnSharedArray(enemyFoundCh) == 1);
+
+        enemyBaseLoc   = tools.decodeLoc(uc.readOnSharedArray(enemyBaseLocCh) );
+        enemyBaseFound = (uc.readOnSharedArray(enemyBaseFoundCh) == 1);
     }
 
     void updateChannels() {

@@ -190,7 +190,6 @@ public class Movement {
         boolean isDiagonal;
         //TODO considerar el tipo de tile
         TileType tile;
-        //TODO implementar checks para la base enemiga.
         boolean tooCloseToEnemyBase = false;
 
         //TODO mirar vida restante para asegurarse que no morimos.
@@ -244,6 +243,11 @@ public class Movement {
             if (distToEnemy <= enemyMaxRange && distToEnemy >= enemyMinRange) {
                 maxDamage += enemy.getType().getStat(UnitStat.ATTACK) - uc.getType().getStat(UnitStat.DEFENSE);
             }
+
+            if(data.enemyBaseFound){
+                if (uc.getLocation().distanceSquared(data.enemyBaseLoc) <= 32) tooCloseToEnemyBase = true;
+            }
+
         }
 
         void updateAlly() {

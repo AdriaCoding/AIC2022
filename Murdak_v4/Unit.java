@@ -91,6 +91,11 @@ public class Unit {
         }
     }
 
+    void reportEnemies(){
+        reportEnemyLocation();
+        reportEnemyBaseLocation();
+    }
+
     void reportEnemyLocation(){
 
         int r = (int) uc.getType().getStat(UnitStat.VISION_RANGE);
@@ -114,6 +119,21 @@ public class Unit {
             }
         }
 
+    }
+
+    void reportEnemyBaseLocation() {
+
+        if (!data.enemyBaseFound) {
+            UnitInfo[] enemiesOnSight = uc.senseUnits(data.enemyTeam);
+            for (UnitInfo enemy : enemiesOnSight) {
+                if (enemy.getType() == UnitType.BASE) {
+                    uc.writeOnSharedArray(data.enemyBaseLocCh, tools.encodeLoc(enemy.getLocation()));
+                    uc.writeOnSharedArray(data.enemyBaseFoundCh, 1);
+                    data.enemyBaseFound = true;
+                }
+            }
+
+        }
     }
 
 }

@@ -8,7 +8,7 @@ public class CombatUnit extends Unit {
 
     void report() {
         reportMyself();
-        reportEnemyLocation();
+        reportEnemies();
         //reportEnvironment();
     }
 

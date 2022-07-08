@@ -19,9 +19,6 @@ public class Base extends Unit {
 
             data.update();
 
-            if(data.enemyFound)uc.println("enemy at: "+data.enemyLoc.x+","+data.enemyLoc.y);
-            else uc.println("no enemy found yet");
-
             report();
 
             spawnUnits();
@@ -40,7 +37,8 @@ public class Base extends Unit {
     void report(){
         reportAccumulationLocation();
         reportMyself();
-        reportEnemyLocation();
+        reportEnemies();
+
     }
 
     void reportAccumulationLocation(){
