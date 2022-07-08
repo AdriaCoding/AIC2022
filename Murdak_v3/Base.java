@@ -49,19 +49,20 @@ public class Base extends Unit {
             //select a random visible cell
             Location target = cells[ tools.randomInt(cells.length) ];
             if(!uc.isOutOfMap(target) && !uc.isObstructed(uc.getLocation(),target)){
-                uc.writeOnSharedArray( data.accumulationCh, tools.encodeLocation(target.x,target.y));
+                uc.writeOnSharedArray( data.accumulationCh, tools.encodeLoc(target));
                 return;
             }
         }
-        uc.writeOnSharedArray( data.accumulationCh,tools.encodeLocation(uc.getLocation().x,uc.getLocation().y) );
+        uc.writeOnSharedArray( data.accumulationCh,tools.encodeLoc(uc.getLocation()));
     }
 
     void reportMyself(){
         Location myLoc = uc.getLocation();
-        uc.writeOnSharedArray(data.baseLocationCh, tools.encodeLocation(myLoc.x, myLoc.y));
+        uc.writeOnSharedArray(data.baseLocationCh, tools.encodeLoc(myLoc));
     }
 
     void spawnUnits(){
+        if (data.nUnits % 5 == 0) trySpawnExplorer();
         if (data.nUnits % 3 == 2) trySpawnBarbarian();
         else trySpawnRanger();
     }
@@ -103,5 +104,22 @@ public class Base extends Unit {
             }
         }
     }
-
+    void trySpawnExplorer() {
+        boolean done = false;
+        for (Direction dir : data.dirs) {
+            if (!done && uc.canSpawn(UnitType.EXPLORER, dir)) {
+                uc.spawn(UnitType.EXPLORER,dir);
+                // Report to the Comm Channel
+                uc.writeOnSharedArray(data.unitReportCh, uc.readOnSharedArray(data.unitReportCh) + 1);
+                //uc.write(data.rangerReportCh, uc.read(data.rangerReportCh) + 1);
+                // Reset Next Slot
+                uc.writeOnSharedArray(data.unitResetCh, 0);
+                //uc.write(data.rangerResetCh, 0);
+                // Update current data
+                data.nUnits = data.nUnits + 1;
+                //data.nRanger = data.nRanger + 1;
+                done = true;
+            }
+        }
+    }
 }

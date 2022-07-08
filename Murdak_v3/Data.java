@@ -87,7 +87,7 @@ public class Data {
     void updateGeneral() {
         currentRound = uc.getRound();
         turnsAlive = currentRound - spawnRound;
-        allyBase = tools.decodeLocation(uc.readOnSharedArray(baseLocationCh));
+        allyBase = tools.decodeLoc(uc.readOnSharedArray(baseLocationCh));
         x = currentRound%3;
         y = (currentRound+1)%3;
         z = (currentRound+2)%3;
@@ -116,22 +116,6 @@ public class Data {
         nKnights                 = uc.readOnSharedArray(knightCh);
         nAssassins               = uc.readOnSharedArray(assassinCh);
         nClerics                 = uc.readOnSharedArray(clericCh);
-    }
-
-    // Assuming coordinates have less than 3 digits
-    int locationCode(Location loc) {
-        int code = loc.y - allyBase.y + (loc.x - allyBase.x) * 100 ;   // between -6400 and 6400, "xxyy"
-        if (code < 0) code = 6400 - code;
-        return code + baseCode;
-    }
-    Location getLocation (int code){
-        code = code - baseCode;
-        // input should be "xxyy", after baseCode subtraction
-        int relative_y = (code) % 100;
-        int relative_x = (code) / 100;
-        return allyBase.add(relative_x,relative_y);
-
-
     }
 
     int saveShrine(ShrineInfo s) {

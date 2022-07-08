@@ -20,6 +20,10 @@ public class UnitPlayer {
 				Barbarian barbarian = new Barbarian(uc);
 				barbarian.run();
 			}
+			else if (uc.getType() == UnitType.EXPLORER ) {
+				Explorer explorer = new Explorer(uc);
+				explorer.run();
+			}
 
 			uc.yield(); //End of turn
 		}
