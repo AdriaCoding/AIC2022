@@ -25,8 +25,6 @@ public class Base extends Unit {
 
             attack();
 
-            attackN();
-
             getShrine();
 
             uc.yield();
@@ -64,6 +62,9 @@ public class Base extends Unit {
     }
 
     void spawnUnits(){
+
+        //TODO millorar spawn rates dels diferents tipus de unitats
+
         if (data.nUnits % 5 == 0 && data.nScouts < 3) trySpawnExplorer();
         else if (data.nUnits % 3 == 2) trySpawnBarbarian();
         else trySpawnRanger();

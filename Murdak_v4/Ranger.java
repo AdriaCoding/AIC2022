@@ -23,15 +23,11 @@ public class Ranger extends CombatUnit {
 
             attack();
 
-            attackN();
-
             abilityOne();
 
             move();
 
             attack();
-
-            attackN();
 
             getShrine();
 

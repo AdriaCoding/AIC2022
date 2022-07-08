@@ -9,6 +9,11 @@ public class Unit {
     Tools tools;
 
     public void attack(){
+        attackE();
+        attackN();
+    }
+
+    public void attackE(){
 
         UnitInfo[] enemiesAround = uc.senseUnits(data.enemyTeam);
         Location target = uc.getLocation();
@@ -132,7 +137,6 @@ public class Unit {
                     data.enemyBaseFound = true;
                 }
             }
-
         }
     }
 

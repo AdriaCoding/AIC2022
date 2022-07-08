@@ -22,13 +22,13 @@ public class Barbarian extends CombatUnit {
 
             attack();
 
-            attackN();
+            abilityOne();
 
             move();
 
             attack();
 
-            attackN();
+            abilityOne();
 
             getShrine();
 
@@ -49,17 +49,13 @@ public class Barbarian extends CombatUnit {
         UnitInfo[] enemies = uc.senseUnits(8,data.allyTeam, true);
         UnitInfo[] allies = uc.senseUnits(8,data.allyTeam);
 
-
         if(enemies.length > 3 && allies.length == 0) {
             if (uc.getInfo().getLevel() < 2) {
                 if (uc.canLevelUp() && uc.getReputation() > data.barbarianLvlThreshold) uc.levelUp();
                 else if (uc.canUseFirstAbility(uc.getLocation())) uc.useFirstAbility(uc.getLocation());
-                return;
+
             } else if (uc.canUseFirstAbility(uc.getLocation())) uc.useFirstAbility(uc.getLocation());
         }
-
-
-
 
     }
 

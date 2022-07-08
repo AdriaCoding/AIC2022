@@ -118,8 +118,7 @@ public class Movement {
                 micro[i] = new MicroInfo(uc.getLocation().add(data.dirs[i]));
             }
 
-            //TODO: actualizar todas las casillas que ve un enemigo a la vez.
-            for (int i = 0; i < Math.min(unitsAround.length,10); ++i) {
+            for (int i = 0; i < Math.min(unitsAround.length,15); ++i) {
                 UnitInfo unit = unitsAround[i];
                 if(unit.getTeam() == data.allyTeam) {
                     for (MicroInfo m : micro) m.updateAlly();
@@ -127,16 +126,16 @@ public class Movement {
                 else{
                     if(! uc.isObstructed(unit.getLocation(), uc.getLocation() ) ) {
                         combat = true;
-                        for (MicroInfo m : micro) m.update(unit);
+                        for (MicroInfo m : micro) m.updateEnemy(unit);
                     }
                 }
             }
             if (combat) {
 
-                int bestIndex = 0;
+                int bestIndex = 8; //We start by considering staying put
                 float maxPreference = -1000;
 
-                for (int i = 0; i < 8; ++i) {
+                for (int i = 8; i >= 0; --i) {
                     MicroInfo m = micro[i];
                     if (uc.getType() == UnitType.BARBARIAN) {
                         float pref = m.BarbarianPreference();
@@ -159,8 +158,16 @@ public class Movement {
                             bestIndex = i;
                         }
                     }
+                    if (uc.getType() == UnitType.KNIGHT) {
+                        float pref = m.KnightPreference();
+                        if (pref > maxPreference) {
+                            maxPreference = pref;
+                            bestIndex = i;
+                        }
+                    }
                 }
-                uc.println("bestDir: " + data.dirs[bestIndex] + ", preference: " + maxPreference);
+
+                //uc.println("bestDir: " + data.dirs[bestIndex] + ", preference: " + maxPreference);
 
                 if (uc.canMove(data.dirs[bestIndex])) uc.move(data.dirs[bestIndex]);
                 return true;
@@ -174,7 +181,9 @@ public class Movement {
 
         //If we can move there or not. very important check
         boolean canMoveThere = false;
+        //The maximum amount of damage we can take in that cell
         float maxDamage = 0;
+        //The health of the lowest health enemy we see
         float minEnemyHealth = 1000;
         //If we can attack from this location.
         boolean canAttack = false;
@@ -188,8 +197,9 @@ public class Movement {
         boolean tooCloseToEnemy = false;
         //moving diagonally is more expensive, so we try to avoid it.
         boolean isDiagonal;
-        //TODO considerar el tipo de tile
+        //The type of cell it is
         TileType tile;
+        //If we are close enough to the enemy base for it to attack us
         boolean tooCloseToEnemyBase = false;
 
         //TODO mirar vida restante para asegurarse que no morimos.
@@ -202,6 +212,8 @@ public class Movement {
 
             this.loc = _loc;
 
+            tile = uc.senseTileTypeAtLocation(loc);
+
             canMoveThere = uc.canMove(uc.getLocation().directionTo(loc));
 
             isDiagonal = (loc.directionTo(uc.getLocation()) == Direction.NORTHEAST ||
@@ -210,12 +222,14 @@ public class Movement {
                     loc.directionTo(uc.getLocation()) == Direction.SOUTHWEST);
 
 
-            // if(loc.distanceSquared(data.enemyBase) <= 50 ) tooCloseToEnemyBase = true;
+            if(data.enemyBaseFound){
+                if (uc.getLocation().distanceSquared(data.enemyBaseLoc) <= 32) tooCloseToEnemyBase = true;
+            }
 
         }
 
 
-        void update(UnitInfo enemy) {
+        void updateEnemy(UnitInfo enemy) {
 
             if (!canMoveThere) return;
 
@@ -244,14 +258,12 @@ public class Movement {
                 maxDamage += enemy.getType().getStat(UnitStat.ATTACK) - uc.getType().getStat(UnitStat.DEFENSE);
             }
 
-            if(data.enemyBaseFound){
-                if (uc.getLocation().distanceSquared(data.enemyBaseLoc) <= 32) tooCloseToEnemyBase = true;
-            }
+
 
         }
 
         void updateAlly() {
-
+            //TODO consider nearby allies to be more aggressive in battle
         }
 
         float BarbarianPreference() {
@@ -269,8 +281,34 @@ public class Movement {
             if (closerToEnemy) preference += 10;
             //diagonal movement detractor
             if (isDiagonal) preference -= 0.5;
+            //forest tile detractor
+            if (tile == TileType.FOREST) preference -= 0.5;
             //Preference for not getting to close to the enemy base
             if (tooCloseToEnemyBase) preference -= 20;
+
+            return preference;
+
+        }
+
+        float KnightPreference() {
+
+            if (!canMoveThere) return -1000;
+            float preference = 0;
+
+            //preference for attacking
+            if (canAttack) preference += 7;
+            //preference for killing blows
+            if (canLastHit) preference += 14;
+            //preference for taking less damage
+            preference -= maxDamage / 7;
+            //preference for getting close (+) or apart (-) from the enemy
+            if (closerToEnemy) preference += 20;
+            //diagonal movement detractor
+            if (isDiagonal) preference -= 0.5;
+            //forest tile detractor
+            if (tile == TileType.FOREST) preference -= 0.5;
+            //Preference for not getting to close to the enemy base
+            if (tooCloseToEnemyBase) preference -= 40;
 
             return preference;
 
@@ -295,6 +333,8 @@ public class Movement {
             if (fartherToEnemy) preference += 0;
             //diagonal movement detractor
             if (isDiagonal) preference -= 0.5;
+            //forest tile protractor
+            if (tile == TileType.FOREST) preference += 0.25;
             //Preference for not getting to close to the enemy base
             if (tooCloseToEnemyBase) preference -= 20;
 
@@ -320,6 +360,8 @@ public class Movement {
             if (fartherToEnemy) preference += 10;
             //diagonal movement detractor
             if (isDiagonal) preference -= 0.5;
+            //forest tile detractor
+            if (tile == TileType.FOREST) preference -= 0.5;
             //Preference for not getting to close to the enemy base
             if (tooCloseToEnemyBase) preference -= 20;
 
