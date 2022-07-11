@@ -11,6 +11,7 @@ public class Movement {
     public Movement(UnitController _uc, Data _data) {
         this.uc = _uc;
         this.data = _data;
+        this.tools = new Tools(_uc, _data);
     }
 
     private final int INF = Integer.MAX_VALUE;
@@ -176,7 +177,7 @@ public class Movement {
                 for(int i = 0; i < 8; ++i){
                     Direction currentDir = tools.dirsBFS[i];
                     float danger = 0;
-                    for (int j = 0; j < 8; ++i){
+                    for (int j = 0; j < 8; ++j){
                         danger += micro[bestIndex].directionDanger[j]* tools.angloid(currentDir,tools.dirsBFS[j]);
                     }
                     if (danger < minDanger){
@@ -271,7 +272,7 @@ public class Movement {
             if (distToEnemy > currentDistToEnemy) fartherToEnemy = true;
             if (distToEnemy < uc.getType().getStat(UnitStat.MIN_ATTACK_RANGE)) tooCloseToEnemy = true;
             float predictedDamage = enemy.getType().getStat(UnitStat.ATTACK) - uc.getType().getStat(UnitStat.DEFENSE);
-            int directionCode = tools.dirCode((uc.getLocation().directionTo(enemyLocation)))-1;
+           int directionCode = tools.dirCode((uc.getLocation().directionTo(enemyLocation)))-1;
             if (enemy.getType() == UnitType.ASSASSIN) {
                 directionDanger[directionCode] = predictedDamage*9; //do not modify weight
             }
