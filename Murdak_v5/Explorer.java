@@ -48,6 +48,7 @@ public class Explorer extends CombatUnit {
 
         if(movement.doMicro() ) return;
         if(seekChest() )        return;
+        if(seekShrine() )       return;
         if(accumulate() )       return;
         movement.explore();
 

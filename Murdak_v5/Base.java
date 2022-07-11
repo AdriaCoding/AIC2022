@@ -17,12 +17,6 @@ public class Base extends Unit {
 
         while (true) {
 
-            if (uc.getRound() == 0){
-                uc.writeOnSharedArray(data.baseLocationCh, tools.encodeLoc(uc.getLocation()));
-                uc.println("La base es troba a " + uc.getLocation());
-                senseStuff();
-            }
-
             data.update();
 
             report();
@@ -33,6 +27,10 @@ public class Base extends Unit {
 
             getShrine();
 
+            if (uc.getRound() == 0) reportMyself();
+
+            if (uc.getRound() == 0) senseStuff();
+
             //tools.BFS(data.allyBase);
 
             uc.yield();
@@ -42,7 +40,7 @@ public class Base extends Unit {
 
     void report(){
         reportAccumulationLocation();
-        reportMyself();
+
         reportEnemies();
 
     }
@@ -70,13 +68,14 @@ public class Base extends Unit {
     }
 
     void spawnUnits(){
-
         //TODO millorar spawn rates dels diferents tipus de unitats
 
         if (data.nUnits % 5 == 0 && data.nScouts < 3) trySpawnExplorer();
-        else if (data.nUnits % 3 == 2) trySpawnBarbarian();
-        else if (data.nUnits % 3 == 1) trySpawnKnight();
+        else if (data.nUnits % 3 == 1) trySpawnBarbarian();
+        else if (data.nUnits % 3 == 2) trySpawnKnight();
         else trySpawnRanger();
+
+
     }
 
     void trySpawnRanger() {

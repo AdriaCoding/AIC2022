@@ -42,13 +42,20 @@ public class Ranger extends CombatUnit {
 
     }
 
+    @Override
+    void move(){
+        if(movement.doMicro() ) return;
+        if(reinforce() )        return;
+        if(accumulate() )       return;
+        movement.explore();
+    }
+
     void abilityOne(){
 
         UnitInfo[] units = uc.senseUnits(36,data.allyTeam, true);
 
         for (UnitInfo u : units){
-            if (u.getType() == UnitType.BARBARIAN || uc.getType() == UnitType.EXPLORER
-                || (u.getType() == UnitType.KNIGHT && u.getLevel() < 2) ){
+            if (u.getType() == UnitType.BARBARIAN || (u.getType() == UnitType.KNIGHT && u.getLevel() < 2) ){
                 if(uc.getInfo().getLevel() < 2){
                     if(uc.canLevelUp() && uc.getReputation() > data.rangerLvlThreshold ) uc.levelUp();
                     return;

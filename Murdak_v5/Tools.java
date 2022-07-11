@@ -123,6 +123,13 @@ public class Tools {
         else return TileType.DUNGEON_ENTRANCE; // dunno
     }
 
+    int dirCode(Direction d){
+        for(int i = 0; i < 8; ++i){
+            if (d.isEqual(data.dirs[i]) )return i;
+        }
+        return 0;
+    }
+
 
     //--------------------BFS FUNCTIONS--------------//
 
@@ -134,31 +141,39 @@ public class Tools {
             {Direction.NORTH,     Direction.WEST,      Direction.SOUTH,     Direction.EAST,
              Direction.NORTHWEST, Direction.SOUTHWEST, Direction.SOUTHEAST, Direction.NORTHEAST};
 
-    int dirCode (Direction d){
-        if (d == Direction.NORTH)       return 1;
-        if (d == Direction.WEST)        return 2;       //   5 1 8
-        if (d == Direction.SOUTH)       return 3;       //   2 9 4
-        if (d == Direction.EAST)        return 4;       //   6 3 7
-        if (d == Direction.NORTHWEST)   return 5;
-        if (d == Direction.SOUTHWEST)   return 6;
-        if (d == Direction.SOUTHEAST)   return 7;
-        if (d == Direction.NORTHEAST)   return 8;
-        if (d == Direction.ZERO)        return 9;
-        else return 0;
+    int dirCodeBFS (Direction d){
+        //TODO arreglar los ==
+        if (d == Direction.NORTH)       return 0;
+        if (d == Direction.WEST)        return 1;       //   4 0 7
+        if (d == Direction.SOUTH)       return 2;       //   1 8 3
+        if (d == Direction.EAST)        return 3;       //   5 2 6
+        if (d == Direction.NORTHWEST)   return 4;
+        if (d == Direction.SOUTHWEST)   return 5;
+        if (d == Direction.SOUTHEAST)   return 6;
+        if (d == Direction.NORTHEAST)   return 7;
+        if (d == Direction.ZERO)        return 8;
+
+        uc.println("something went wrong in dirCode");
+
+        return 0;
     }
 
     int angloid (Direction d1, Direction d2){       /*assuming d1 is NORTH, then:
                                                           1 0 1
                                                           2   2
                                                           3 4 3         */
-        if (d1 == d2)                                               return 0;
-        if (d1.opposite() == d2)                                    return 4;
-        if (d1.rotateRight() == d2 |
-                d1.rotateLeft() == d2)                              return 2;
-        Location origin = new Location(0,0);
-        if(origin.add(d1) == origin.add(d2).add(Direction.EAST))    return 1;
-        if(origin.add(d1) == origin.add(d2).add(Direction.WEST))    return 1;
-        else                                                        return 3;
+        if (d1.isEqual(d2) )                                               return 0;
+        if (d1.rotateRight().isEqual(d2) || d1.rotateLeft().isEqual(d2) )  return 1;
+        if (d1.rotateRight().rotateRight().isEqual(d2) )                   return 2;
+        if (d1.rotateLeft().rotateLeft().isEqual(d2) )                     return 2;
+        if (d1.opposite().rotateRight().isEqual(d2) )                      return 3;
+        if (d1.opposite().rotateLeft().isEqual(d2) )                       return 3;
+        if (d1.opposite().isEqual(d2) )                                    return 4;
+
+        uc.println("something went wrong in angloid");
+
+        return 0;
+
     }
 
     boolean isValid(Location loc){
@@ -184,7 +199,7 @@ public class Tools {
 
             // Go to the adjacent cells
             for(int i = 1; i < 10; i++) {
-                Location adjLoc = loc.add(dirsBFS[i-1]);
+                Location adjLoc = loc.add(data.dirs[i-1]);
                 if (isValid(adjLoc)) {
                     q.add(adjLoc);
                     uc.println("Adding to queue (" + adjLoc.x+ " " + adjLoc.y + ") \n");

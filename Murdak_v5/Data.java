@@ -29,9 +29,11 @@ public class Data {
     int reinforcementRound = 150; //Round at which we start sending reinforcements
 
     int seekChestDist = 49; //max distance at which scouts go open chests
+    int seekShrineDist = 49; //max distance at which units go conquer shrines
 
-    int rangerLvlThreshold = 40; //minimum reputation which we upgrade ranger
-    int barbarianLvlThreshold = 60; //minimum reputation which we upgrade barbarian
+    int rangerLvlThreshold = 40;    //minimum reputation we need to have to upgrade ranger
+    int barbarianLvlThreshold = 60; //minimum reputation we need to have to upgrade barbarian
+    int knightLvlThreshold = 60;    //minimum reputation we need to have to upgrade knight
 
     //UNITS CHANNELS
     int unitCh,             unitReportCh,           unitResetCh;            // Ch 0, 1, 2

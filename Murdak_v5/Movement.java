@@ -117,7 +117,7 @@ public class Movement {
             MicroInfo[] micro = new MicroInfo[9];
             for (int i = 0; i < 9; ++i) {
                 Location newLoc = uc.getLocation().add(data.dirs[i]);
-                if (!uc.isOutOfMap(newLoc)) micro[i] = new MicroInfo(newLoc);
+                micro[i] = new MicroInfo(newLoc);
             }
 
             for (int i = 0; i < Math.min(unitsAround.length,15); ++i) {
@@ -170,21 +170,29 @@ public class Movement {
                 }
 
                 //uc.println("bestDir: " + data.dirs[bestIndex] + ", preference: " + maxPreference);
-
                 if (uc.canMove(data.dirs[bestIndex])) uc.move(data.dirs[bestIndex]);
 
-                float minDanger = 1<<20; //2^20
-                for(int i = 0; i < 8; ++i){
-                    Direction currentDir = tools.dirsBFS[i];
+                //ORIENTATION
+
+                float minDanger = 1000;
+                Direction bestOrientation = Direction.ZERO;
+
+                for(Direction dir : data.dirs){
+                    if (dir.equals(Direction.ZERO) ) continue;
                     float danger = 0;
                     for (int j = 0; j < 8; ++j){
-                        danger += micro[bestIndex].directionDanger[j]* tools.angloid(currentDir,tools.dirsBFS[j]);
+                        danger += micro[bestIndex].directionDanger[j]* tools.angloid(dir,data.dirs[j]);
                     }
                     if (danger < minDanger){
-                        uc.setOrientation(currentDir);
+                        bestOrientation = dir;
                         minDanger = danger;
                     }
                 }
+
+                if(!bestOrientation.isEqual(Direction.ZERO) )uc.setOrientation(bestOrientation);
+
+
+
                 return true;
             }
             else return  false;
@@ -192,10 +200,10 @@ public class Movement {
         return false;
     }
 
-    class MicroInfo {
+    public class MicroInfo {
 
         //If we can move there or not. very important check
-        boolean canMoveThere = false;
+        boolean canMoveThere;
         //The maximum amount of damage we can take in that cell
         float maxDamage = 0;
         //All the directions where we will be facing our enemies.
@@ -215,7 +223,7 @@ public class Movement {
         //moving diagonally is more expensive, so we try to avoid it.
         boolean isDiagonal;
         //The type of cell it is
-        TileType tile;
+        TileType tile = TileType.MOUNTAIN;
         //If we are close enough to the enemy base for it to attack us
         boolean tooCloseToEnemyBase = false;
 
@@ -229,19 +237,23 @@ public class Movement {
 
             this.loc = _loc;
 
-            tile = uc.senseTileTypeAtLocation(loc);
+            if(!uc.isOutOfMap(loc)) {
 
-            canMoveThere = uc.canMove(uc.getLocation().directionTo(loc));
+                tile = uc.senseTileTypeAtLocation(loc);
 
-            isDiagonal = (loc.directionTo(uc.getLocation()) == Direction.NORTHEAST ||
-                    loc.directionTo(uc.getLocation()) == Direction.NORTHWEST ||
-                    loc.directionTo(uc.getLocation()) == Direction.SOUTHEAST ||
-                    loc.directionTo(uc.getLocation()) == Direction.SOUTHWEST);
+                canMoveThere = uc.canMove(uc.getLocation().directionTo(loc));
+
+                isDiagonal = (loc.directionTo(uc.getLocation()) == Direction.NORTHEAST ||
+                        loc.directionTo(uc.getLocation()) == Direction.NORTHWEST ||
+                        loc.directionTo(uc.getLocation()) == Direction.SOUTHEAST ||
+                        loc.directionTo(uc.getLocation()) == Direction.SOUTHWEST);
 
 
-            if(data.enemyBaseFound){
-                if (uc.getLocation().distanceSquared(data.enemyBaseLoc) <= 32) tooCloseToEnemyBase = true;
+                if (data.enemyBaseFound) {
+                    if (uc.getLocation().distanceSquared(data.enemyBaseLoc) <= 32) tooCloseToEnemyBase = true;
+                }
             }
+            else canMoveThere = false;
 
         }
 
@@ -253,10 +265,6 @@ public class Movement {
 
             int distToEnemy = loc.distanceSquared(enemyLocation);
             int currentDistToEnemy = uc.getLocation().distanceSquared(enemyLocation);
-            //TODO mirar orientación de unidades enemigas.
-
-            float maxRange = uc.getType().getStat(UnitStat.ATTACK_RANGE);
-            float minRange = uc.getType().getStat(UnitStat.MIN_ATTACK_RANGE);
 
             float enemyEffectiveHealth = enemy.getHealth() + enemy.getType().getStat(UnitStat.DEFENSE);
             float enemyMaxRange = enemy.getType().getStat(UnitStat.ATTACK_RANGE);
@@ -271,12 +279,15 @@ public class Movement {
             if (distToEnemy < currentDistToEnemy) closerToEnemy = true;
             if (distToEnemy > currentDistToEnemy) fartherToEnemy = true;
             if (distToEnemy < uc.getType().getStat(UnitStat.MIN_ATTACK_RANGE)) tooCloseToEnemy = true;
+
+
             float predictedDamage = enemy.getType().getStat(UnitStat.ATTACK) - uc.getType().getStat(UnitStat.DEFENSE);
-           int directionCode = tools.dirCode((uc.getLocation().directionTo(enemyLocation)))-1;
-            if (enemy.getType() == UnitType.ASSASSIN) {
-                directionDanger[directionCode] = predictedDamage*9; //do not modify weight
-            }
-            else directionDanger[directionCode] = predictedDamage*5; //do not modify weight
+
+            int directionCode = tools.dirCode((uc.getLocation().directionTo(enemyLocation) ) );
+            if (enemy.getType() == UnitType.ASSASSIN)directionDanger[directionCode] = predictedDamage*9;
+            else directionDanger[directionCode] = predictedDamage*5; //do not modify weights
+
+
 
             if (distToEnemy <= enemyMaxRange && distToEnemy >= enemyMinRange) {
                 maxDamage += predictedDamage;
@@ -305,7 +316,7 @@ public class Movement {
             //forest tile detractor
             if (tile == TileType.FOREST) preference -= 0.5;
             //Preference for not getting to close to the enemy base
-            if (tooCloseToEnemyBase) preference -= 20;
+            if (tooCloseToEnemyBase) preference -= 40;
 
             return preference;
 
@@ -329,7 +340,7 @@ public class Movement {
             //forest tile detractor
             if (tile == TileType.FOREST) preference -= 0.5;
             //Preference for not getting to close to the enemy base
-            if (tooCloseToEnemyBase) preference -= 40;
+            if (tooCloseToEnemyBase) preference -= 60;
 
             return preference;
 
@@ -357,7 +368,7 @@ public class Movement {
             //forest tile protractor
             if (tile == TileType.FOREST) preference += 0.25;
             //Preference for not getting to close to the enemy base
-            if (tooCloseToEnemyBase) preference -= 20;
+            if (tooCloseToEnemyBase) preference -= 100;
 
             return preference;
 
@@ -388,6 +399,5 @@ public class Movement {
             return preference;
         }
     }
-
 }
 

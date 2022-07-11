@@ -33,6 +33,7 @@ public class CombatUnit extends Unit {
     void move(){
         if(movement.doMicro() ) return;
         if(reinforce() )        return;
+        if(seekShrine() )       return; //TODO mirar potser de posar-ho abans de reinforce
         if(accumulate() )       return;
         movement.explore();
     }
@@ -64,6 +65,20 @@ public class CombatUnit extends Unit {
             uc.useArtifact(0);
         }
 
+    }
+
+    boolean seekShrine(){
+        ShrineInfo[] shrines = uc.senseShrines(data.seekShrineDist);
+        for (ShrineInfo shrine : shrines) {
+            for (Direction dir : data.dirs) {
+                if (dir.isEqual(Direction.ZERO) || !uc.canSenseLocation((shrine.getLocation().add(dir)) ) ) continue;
+                if (!uc.isObstructed(shrine.getLocation().add(dir), uc.getLocation()) && shrine.getOwner() != data.allyTeam) {
+                    movement.moveTo(shrine.getLocation().add(dir));
+                    return true;
+                }
+            }
+        }
+        return false;
     }
 
     void enterDungeon(){
