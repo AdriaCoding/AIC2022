@@ -101,13 +101,13 @@ public class Tools {
     //-------TileType to int functions----------//
 
     int tileType_code (TileType tileType){
-        if (tileType == TileType.PLAINS) return 1;
-        if (tileType == TileType.FOREST) return 2;
-        if (tileType == TileType.MOUNTAIN) return 3;
-        if (tileType == TileType.SHRINE) return 4;
-        if (tileType == TileType.WATER) return 5;
-        if (tileType == TileType.DUNGEON) return 6;
-        if (tileType == TileType.DUNGEON_ENTRANCE) return 7;
+        if (tileType.equals(TileType.PLAINS)) return 1;
+        if (tileType.equals(TileType.FOREST)) return 2;
+        if (tileType.equals(TileType.MOUNTAIN)) return 3;
+        if (tileType.equals(TileType.SHRINE))return 4;
+        if (tileType.equals(TileType.WATER)) return 5;
+        if (tileType.equals(TileType.DUNGEON))return 6;
+        if (tileType.equals(TileType.DUNGEON_ENTRANCE)) return 7;
         else return 0;
     }
 
@@ -142,16 +142,15 @@ public class Tools {
              Direction.NORTHWEST, Direction.SOUTHWEST, Direction.SOUTHEAST, Direction.NORTHEAST};
 
     int dirCodeBFS (Direction d){
-        //TODO arreglar los ==
-        if (d == Direction.NORTH)       return 0;
-        if (d == Direction.WEST)        return 1;       //   4 0 7
-        if (d == Direction.SOUTH)       return 2;       //   1 8 3
-        if (d == Direction.EAST)        return 3;       //   5 2 6
-        if (d == Direction.NORTHWEST)   return 4;
-        if (d == Direction.SOUTHWEST)   return 5;
-        if (d == Direction.SOUTHEAST)   return 6;
-        if (d == Direction.NORTHEAST)   return 7;
-        if (d == Direction.ZERO)        return 8;
+        if (d.isEqual(Direction.NORTH))       return 0;
+        if (d.isEqual(Direction.WEST))        return 1;       //   4 0 7
+        if (d.isEqual(Direction.SOUTH))       return 2;       //   1 8 3
+        if (d.isEqual(Direction.EAST))        return 3;       //   5 2 6
+        if (d.isEqual(Direction.NORTHWEST))   return 4;
+        if (d.isEqual(Direction.SOUTHWEST))   return 5;
+        if (d.isEqual(Direction.SOUTHEAST))   return 6;
+        if (d.isEqual(Direction.NORTHEAST))   return 7;
+        if (d.isEqual(Direction.ZERO))        return 8;
 
         uc.println("something went wrong in dirCode");
 
@@ -177,39 +176,56 @@ public class Tools {
     }
 
     boolean isValid(Location loc){
-        if(uc.isOutOfMap(loc)) return false;
         int info = uc.readOnSharedArray(encodeLoc(loc));
         if(info == 0) return false;
-        if(getTileType(info) == TileType.MOUNTAIN) return false;
-        if(getTileType(info) == TileType.WATER) return false;
-        if(getTileType(info) == TileType.DUNGEON) return false;
+        if(getTileType(info).equals(TileType.MOUNTAIN)) return false;
+        if(getTileType(info).equals(TileType.WATER)) return false;
+        if(getTileType(info).equals(TileType.DUNGEON)) return false;
         return info / 10 == 0;
     }
 
-    void BFS(Location start) {
+    void BFS(Location target, int BFSmemoryCh) {
         Queue<Location> q = new LinkedList<>();
 
-        // Mark the starting cell as visited
-        // and push it into the queue
-        uc.writeOnSharedArray(encodeLoc(start), uc.readOnSharedArray(encodeLoc(start)) + 9*10 );
-        q.add(start);
+        if (BFSmemoryCh < 0) {
+            uc.writeOnSharedArray(encodeLoc(target), uc.readOnSharedArray(encodeLoc(target)) + 9 * 10);
+            q.add(target);
+        }
+        int code = uc.readOnSharedArray(BFSmemoryCh);
+        if (code == 0){
+            uc.writeOnSharedArray(encodeLoc(target), uc.readOnSharedArray(encodeLoc(target)) + 9 * 10);
+            q.add(target);
+        }
+        else {
+            int i = BFSmemoryCh;
+            while (code != 0){
+                q.add(decodeLoc(code));
+                uc.writeOnSharedArray(i, 0);
+                i += 1;
+                code = uc.readOnSharedArray(i);
+            }
+        }
         while (!q.isEmpty() & uc.getEnergyLeft() > 100) {
             Location loc = q.peek();
             q.remove();
-
+            if(loc == null) continue;
             // Go to the adjacent cells
             for(int i = 1; i < 10; i++) {
-                Location adjLoc = loc.add(data.dirs[i-1]);
+                Location adjLoc = loc.add(data.dirs[i-1].opposite());
                 if (isValid(adjLoc)) {
                     q.add(adjLoc);
-                    uc.println("Adding to queue (" + adjLoc.x+ " " + adjLoc.y + ") \n");
+                    uc.println("Adding direction " + data.dirs[i-1] + " to (" + adjLoc.x+ " " + adjLoc.y + ") ");
                     uc.writeOnSharedArray(encodeLoc(adjLoc),
                             uc.readOnSharedArray(encodeLoc(adjLoc)) + i*10 );
-            }
+                }
             }
         }
-
-        //TODO empty the queue
+        while(!q.isEmpty()){
+            if(uc.getEnergyLeft() < 15) uc.println("Insufficient BFS energy threshold");
+            uc.writeOnSharedArray(BFSmemoryCh, encodeLoc(q.peek()));
+            q.remove();
+            BFSmemoryCh += 1;
+        }
     }
 
 }
