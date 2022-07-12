@@ -50,6 +50,18 @@ public class Ranger extends CombatUnit {
         movement.explore();
     }
 
+    @Override
+    void reportMyself() {
+        // Report to the Comm Channel
+        uc.writeOnSharedArray(data.unitReportCh, uc.readOnSharedArray(data.unitReportCh)+1);
+        // Reset Next Slot
+        uc.writeOnSharedArray(data.unitResetCh, 0);
+        // Report to the Comm Channel
+        uc.writeOnSharedArray(data.rangerReportCh, uc.readOnSharedArray(data.rangerReportCh)+1);
+        // Reset Next Slot
+        uc.writeOnSharedArray(data.rangerResetCh, 0);
+    }
+
     void abilityOne(){
 
         UnitInfo[] units = uc.senseUnits(36,data.allyTeam, true);

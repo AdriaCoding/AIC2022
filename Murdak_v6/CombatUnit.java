@@ -20,8 +20,6 @@ public class CombatUnit extends Unit {
         uc.writeOnSharedArray(data.unitResetCh, 0);
     }
 
-    // Should be used by explorers
-
     void getChest(){
         ChestInfo[] chest = uc.senseChests(2);
         if (chest.length > 0){
@@ -32,10 +30,22 @@ public class CombatUnit extends Unit {
 
     void move(){
         if(movement.doMicro() ) return;
+        if(reinforceBase() )    return;
         if(reinforce() )        return;
         if(seekShrine() )       return; //TODO mirar potser de posar-ho abans de reinforce
         if(accumulate() )       return;
         movement.explore();
+    }
+
+    boolean reinforceBase(){
+
+        Location accumulationTarget = tools.decodeLoc(uc.readOnSharedArray(data.accumulationCh));
+
+        if(data.baseInDanger){
+            movement.moveTo(accumulationTarget);
+            return true;
+        }
+        return false;
     }
 
     boolean accumulate(){
@@ -79,16 +89,6 @@ public class CombatUnit extends Unit {
             }
         }
         return false;
-    }
-
-    void enterDungeon(){
-        if (uc.senseTileTypeAtLocation(uc.getLocation()) == TileType.DUNGEON) return;
-        for (Location entrance : uc.senseVisibleTiles(TileType.DUNGEON_ENTRANCE)){
-            Direction dir = tools.isAdjacent(entrance, uc.getLocation());
-            if(dir != Direction.ZERO){
-                if(uc.canEnterDungeon(dir,dir)) uc.enterDungeon(dir,dir);
-            }
-        }
     }
 
 }

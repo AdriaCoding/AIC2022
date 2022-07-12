@@ -40,6 +40,18 @@ public class Knight extends CombatUnit {
 
     }
 
+    @Override
+    void reportMyself() {
+        // Report to the Comm Channel
+        uc.writeOnSharedArray(data.unitReportCh, uc.readOnSharedArray(data.unitReportCh)+1);
+        // Reset Next Slot
+        uc.writeOnSharedArray(data.unitResetCh, 0);
+        // Report to the Comm Channel
+        uc.writeOnSharedArray(data.knightReportCh, uc.readOnSharedArray(data.knightReportCh)+1);
+        // Reset Next Slot
+        uc.writeOnSharedArray(data.knightResetCh, 0);
+    }
+
     void abilityOne(){
 
         UnitInfo[] units = uc.senseUnits(50,data.allyTeam, true);

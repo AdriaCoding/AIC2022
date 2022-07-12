@@ -1,9 +1,6 @@
 package Murdak_v6;
 
-import aic2022.user.Direction;
-import aic2022.user.Location;
-import aic2022.user.UnitController;
-import aic2022.user.UnitType;
+import aic2022.user.*;
 
 public class Base extends Unit {
 
@@ -29,9 +26,9 @@ public class Base extends Unit {
 
             if (uc.getRound() == 0) reportMyself();
 
-            if (uc.getRound() == 0) senseStuff();
+            //if (uc.getRound() == 0) senseStuff();
 
-            if (uc.getRound() > 3) tools.BFS(data.allyBase, data.baseBFSCh); //falla a la ronda 2 por algún misterioso motivo
+            //if (uc.getRound() > 3) tools.BFS(data.allyBase, data.baseBFSCh); //falla a la ronda 2 por algún misterioso motivo
 
             uc.yield();
         }
@@ -39,10 +36,35 @@ public class Base extends Unit {
     }
 
     void report(){
+        resetDynamicChannels();
+        reportDanger();
         reportAccumulationLocation();
-
         reportEnemies();
+    }
 
+    void resetDynamicChannels(){
+        //Every 20 rounds we reset some channels to ensure we are considering new objectives.
+        if(uc.getRound()%20 != 0) return;
+
+        //Enemy last known location
+        uc.writeOnSharedArray(data.enemyLocCh, 0);
+        uc.writeOnSharedArray(data.enemyFoundCh, 0);
+        data.enemyFound = false;
+
+        //Base danger indicator
+        uc.writeOnSharedArray(data.baseDangerCh, 0);
+        data.baseInDanger = false;
+
+    }
+
+    void reportDanger(){
+        if(!data.baseInDanger){
+            UnitInfo[] enemies = uc.senseUnits(64,data.allyTeam,true);
+            if(enemies.length > 4 ){
+                uc.writeOnSharedArray(data.baseDangerCh, 1);
+                data.baseInDanger = true;
+            }
+        }
     }
 
     void reportAccumulationLocation(){
@@ -74,8 +96,6 @@ public class Base extends Unit {
         else if (data.nUnits % 3 == 1) trySpawnBarbarian();
         else if (data.nUnits % 3 == 2) trySpawnKnight();
         else trySpawnRanger();
-
-
     }
 
     void trySpawnRanger() {

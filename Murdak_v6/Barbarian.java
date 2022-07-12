@@ -43,6 +43,18 @@ public class Barbarian extends CombatUnit {
 
     }
 
+    @Override
+    void reportMyself() {
+        // Report to the Comm Channel
+        uc.writeOnSharedArray(data.unitReportCh, uc.readOnSharedArray(data.unitReportCh)+1);
+        // Reset Next Slot
+        uc.writeOnSharedArray(data.unitResetCh, 0);
+        // Report to the Comm Channel
+        uc.writeOnSharedArray(data.barbarianReportCh, uc.readOnSharedArray(data.barbarianReportCh)+1);
+        // Reset Next Slot
+        uc.writeOnSharedArray(data.barbarianResetCh, 0);
+    }
+
 
     void abilityOne(){
 

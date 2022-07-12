@@ -16,13 +16,16 @@ public class Data {
     int x;                      int y;                          int z;
     Location enemyLoc;          boolean enemyFound = false;
     Location enemyBaseLoc;      boolean enemyBaseFound = false;
+    boolean baseInDanger = false;
 
     //CHARACTER SPECIFIC INFO
     Direction prefDir;
+    Boolean escapeDungeon;
 
     //CONSTANTS
     int accumulationRound = 250; //Round until we keep combat units around the base
     int scoutAccumulationRound = 25; //Round until we keep scout around the base
+    int dungeonExplorationRound = 100; //Round where we start entering dungeons
     int shrineDistanceThreshold = 1800; //Distance at which we start destroying shrines
 
     int reinforcementDist = 4000; //Max distance to walk to enemyLoc
@@ -66,6 +69,7 @@ public class Data {
     int baseLocationCh = 101; // Ch 101
     int enemyFoundCh = 102;         int enemyLocCh = 103;   //Ch 102 & 103
     int enemyBaseFoundCh = 104;     int enemyBaseLocCh = 105;   //Ch 104 & 105
+    int baseDangerCh = 106;
 
     //MAP CHANNELS - from 10000 to 18000
 
@@ -83,6 +87,7 @@ public class Data {
 
         //Explorer initialization
         prefDir = tools.randomDir();
+        escapeDungeon = false;
     }
 
     // This function is called once per turn
@@ -116,6 +121,12 @@ public class Data {
 
         enemyBaseLoc   = tools.decodeLoc(uc.readOnSharedArray(enemyBaseLocCh) );
         enemyBaseFound = (uc.readOnSharedArray(enemyBaseFoundCh) == 1);
+
+        baseInDanger = (uc.readOnSharedArray(baseDangerCh) == 1);
+
+        //Unit specific update (maybe move out of updateGeneral)
+        if(uc.getRound()%100 == 0) escapeDungeon = false;
+
     }
 
     void updateChannels() {

@@ -124,6 +124,8 @@ public class Unit {
 
     void reportEnemyLocation(){
 
+
+
         int r = (int) uc.getType().getStat(UnitStat.VISION_RANGE);
 
         if(data.enemyFound) {
