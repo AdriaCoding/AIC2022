@@ -1,6 +1,8 @@
-package Murdak_v8;
+package Murdak_v8_old;
 
-import aic2022.user.*;
+import aic2022.user.UnitController;
+import aic2022.user.UnitInfo;
+import aic2022.user.UnitType;
 
 public class Ranger extends CombatUnit {
 
@@ -33,9 +35,9 @@ public class Ranger extends CombatUnit {
 
             useArtifact();
 
-            levelUp();
-
-            //enterDungeon();
+            if (data.enemyBaseFound){
+                tools.baseBFS(tools.encodeLoc(data.enemyBaseLoc), data.enemyBaseBFSCh);
+            }
 
             uc.yield();
         }
@@ -45,7 +47,6 @@ public class Ranger extends CombatUnit {
     @Override
     void move(){
         if(movement.doMicro() ) return;
-        if(seekShrine())        return;
         if(reinforce() )        return;
         if(accumulate() )       return;
         movement.explore();
@@ -63,40 +64,17 @@ public class Ranger extends CombatUnit {
         uc.writeOnSharedArray(data.rangerResetCh, 0);
     }
 
-    @Override
-    boolean seekShrine(){
-        ShrineInfo[] shrines = uc.senseShrines();
-        for (ShrineInfo shrine : shrines) {
-            if(shrine.getOwner() == data.allyTeam) continue;;
-            Location[] locs = uc.getVisibleLocations(36);
-            for ( Location loc : locs ){
-                if(!uc.isPassable(loc)) continue;
-                if(loc.distanceSquared(shrine.getLocation() ) < uc.getType().getStat(UnitStat.MIN_ATTACK_RANGE)) continue;
-                if(loc.distanceSquared(shrine.getLocation() ) > uc.getType().getStat(UnitStat.ATTACK_RANGE))     continue;
-                if(!uc.isObstructed(loc, uc.getLocation() ) ) {
-                    movement.moveTo(loc);
-                    return true;
-                }
-            }
-        }
-        return false;
-    }
-
-    void levelUp(){
-        if(!data.enemyFound || uc.getInfo().getLevel() >= 2) return;
-        if(uc.senseUnits(50,data.allyTeam,true).length > 0) return;
-        if(uc.canLevelUp() && uc.getReputation() > data.rangerLvlThreshold ) uc.levelUp();
-    }
-
     void abilityOne(){
 
-        if(uc.getInfo().getLevel() < 2) return;
         UnitInfo[] units = uc.senseUnits(36,data.allyTeam, true);
 
         for (UnitInfo u : units){
             if (u.getType() == UnitType.BARBARIAN || (u.getType() == UnitType.KNIGHT && u.getLevel() < 2) ){
-
-                if (uc.canUseFirstAbility( u.getLocation() ) ){
+                if(uc.getInfo().getLevel() < 2){
+                    if(uc.canLevelUp() && uc.getReputation() > data.rangerLvlThreshold ) uc.levelUp();
+                    return;
+                }
+                else if (uc.canUseFirstAbility( u.getLocation() ) ){
                     uc.useFirstAbility(u.getLocation());
                     return;
                 }

@@ -1,4 +1,4 @@
-package Murdak_v8;
+package Murdak_v8_old;
 
 import aic2022.user.*;
 
@@ -28,27 +28,22 @@ public class Base extends Unit {
 
             if (uc.getRound() == 1) senseStuff();
 
-            /*
-            int i = data.baseBFSCh;
-            boolean found = false;
-            String content = "";
-            while(!found){
-                if (uc.readOnSharedArray(i) == 0) found = true;
-                else content = content + Integer.toString(uc.readOnSharedArray(i)) + ", ";
-                i += 1;
-            }
-            if (!content.equals("")) uc.println("["+content +"] round = " + uc.getRound());
-            if (uc.getRound() == 2){
-                uc.println("La base està a " + tools.encodeLoc(data.allyBase));
-                for (int i =0; i <9 ; ++i){
-                    uc.println("La direcció " + tools.dirsBFS[i] + " torna " + tools.encodeLoc(data.allyBase.add(tools.dirsBFS[i])));
-                }
-            }
-            */
-
-            //falla a la ronda 2 por algún misterioso motivo
-            if (uc.getRound() > 4)   tools.baseBFS(tools.encodeLoc(data.allyBase), data.baseBFSCh);
-            if (data.enemyBaseFound) tools.baseBFS(tools.encodeLoc(data.enemyBaseLoc), data.enemyBaseBFSCh);
+//            int i = data.baseBFSCh;
+//            boolean found = false;
+//            String content = "";
+//            while(!found){
+//                if (uc.readOnSharedArray(i) == 0) found = true;
+//                else content = content + Integer.toString(uc.readOnSharedArray(i)) + ", ";
+//                i += 1;
+//            }
+//            if (!content.equals("")) uc.println("["+content +"] round = " + uc.getRound());
+//            if (uc.getRound() == 2){
+//                uc.println("La base està a " + tools.encodeLoc(data.allyBase));
+//                for (int i =0; i <9 ; ++i){
+//                    uc.println("La direcció " + tools.dirsBFS[i] + " torna " + tools.encodeLoc(data.allyBase.add(tools.dirsBFS[i])));
+//                }
+//            }
+            if (uc.getRound() > 4) tools.baseBFS(tools.encodeLoc(data.allyBase), data.baseBFSCh); //falla a la ronda 2 por algún misterioso motivo
 
             uc.yield();
         }
@@ -111,10 +106,11 @@ public class Base extends Unit {
 
     void spawnUnits(){
         //TODO millorar spawn rates dels diferents tipus de unitats
-        if (data.nUnits % 6 == 0 && data.nScouts <= 2)          trySpawnExplorer();
-        else if (data.nUnits % 5 == 0 && data.nKnights > 1)     trySpawnBarbarian();
-        else if (data.nUnits % 5 == 1 || data.nUnits%5 == 4)    trySpawnKnight();
-        else                                                    trySpawnRanger();
+
+        if (data.nUnits % 5 == 0 && data.nScouts < 3) trySpawnExplorer();
+        else if (data.nUnits % 3 == 1) trySpawnBarbarian();
+        else if (data.nUnits % 3 == 2) trySpawnKnight();
+        else trySpawnRanger();
     }
 
     void trySpawnRanger() {
