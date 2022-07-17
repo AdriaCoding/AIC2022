@@ -18,7 +18,9 @@ public class Explorer extends CombatUnit {
 
             report();
 
-            evaluateDungeon(cd);
+            enterDungeon();
+
+            evaluateDungeon();
 
             attack();
 
@@ -30,7 +32,7 @@ public class Explorer extends CombatUnit {
 
             getChest();
 
-            useArtifact();
+            giveArtifact();
 
             senseStuff();
 
@@ -57,23 +59,14 @@ public class Explorer extends CombatUnit {
 
     @Override
     void move(){
-
-        if(seekDungeon() )      return;
-        if(seekChest() )        return;
-        if(movement.doMicro() ) return; //TEST maybe it needs to go first still
-        if(seekShrine() )       return;
-        if(accumulate() )       return;
+        if(!data.inDungeon && movement.doMicro())   return;
+        if(!data.inDungeon && seekChest())          return;
+        if(seekDungeon() )                          return;
+        if(data.inDungeon && seekChest())           return;
+        if(data.inDungeon && movement.doMicro() )   return;
+        if(seekShrine() )                           return;
         movement.explore();
 
-    }
-    @Override
-    boolean accumulate(){
-        Location accumulationTarget = tools.decodeLoc(uc.readOnSharedArray(data.accumulationCh));
-        if (uc.getRound() < data.scoutAccumulationRound){
-            movement.moveTo(accumulationTarget);
-            return true;
-        }
-        return false;
     }
 
     boolean seekChest(){
@@ -92,16 +85,14 @@ public class Explorer extends CombatUnit {
         if(uc.getRound() < data.dungeonExplorationRound) return false;
 
         TileType tile = uc.senseTileTypeAtLocation(uc.getLocation());
-        boolean isInDungeon = tile.equals(TileType.DUNGEON);
-
         if (tile == TileType.DUNGEON_ENTRANCE) return false;
 
         //Conditions to NOT enter a dungeon
-        if (uc.getRound()%400 > 320 && tile != TileType.DUNGEON) return false;
-        if (data.escapeDungeon      && tile != TileType.DUNGEON) return false;
+        if (uc.getRound()%400 > 320 && !inDungeon() ) return false;
+        if (data.escapeDungeon      && !inDungeon() ) return false;
 
         //Conditions to NOT exit a dungeon
-        if ( (uc.getRound()%400 < 320 && tile == TileType.DUNGEON) && !data.escapeDungeon) return false;
+        if ( (uc.getRound()%400 < 320 && inDungeon() ) && !data.escapeDungeon) return false;
 
 
         Location[] dungeons = uc.senseVisibleTiles(TileType.DUNGEON_ENTRANCE);
@@ -138,27 +129,77 @@ public class Explorer extends CombatUnit {
 
     void evaluateDungeon(int di){   //di stands for dungeon index
 
-        if(uc.senseTileTypeAtLocation(uc.getLocation()) != TileType.DUNGEON) return;
+        if(!inDungeon() ) return;
+
+        int dungeonChestDist = 36;
+        int dungeonEnemyDist = 64;
 
         float dungeonDanger = 0;
 
-        ChestInfo[] chests = uc.senseChests(data.seekChestDist);
+        ChestInfo[] chests = uc.senseChests(dungeonChestDist);
         for (ChestInfo chest : chests) {
             if (!uc.isObstructed(chest.getLocation(), uc.getLocation())) {
-                dungeonDanger += (float) chest.getGold()/10;
+                float d = uc.getLocation().distanceSquared(chest.getLocation() );
+                dungeonDanger += (float) chest.getGold()/( 10 + d/4 );
             }
         }
 
-        UnitInfo[] enemies = uc.senseUnits(data.seekChestDist,data.allyTeam,true);
+        UnitInfo[] enemies = uc.senseUnits(dungeonChestDist,data.allyTeam,true);
         for (UnitInfo enemy : enemies) {
             if (!uc.isObstructed(enemy.getLocation(), uc.getLocation())) {
                 dungeonDanger -= (float) enemy.getType().getStat(UnitStat.ATTACK)/5;
             }
         }
 
+        //uc.println("DungeonDanger in dungeon"+uc.getLocation() +" is " + dungeonDanger);
+
         if(dungeonDanger <= 0){
             data.escapeDungeon = true;
         }
+
+    }
+
+    void giveArtifact(){
+        ArtifactInfo[] artifacts = uc.getArtifacts();
+        for (ArtifactInfo artifact : artifacts){
+            UnitInfo[] units = uc.senseUnits(2,data.allyTeam);
+            for(UnitInfo unit : units) {
+                if (uc.canGiveArtifact(0, uc.getLocation().directionTo(unit.getLocation() ) ) ){
+                    uc.giveArtifact(0, uc.getLocation().directionTo(unit.getLocation() ) );
+                }
+            }
+        }
+    }
+
+    void enterDungeon(){
+        if(uc.getRound() < data.dungeonExplorationRound) return;
+
+        TileType tile = uc.senseTileTypeAtLocation(uc.getLocation());
+        if (tile == TileType.DUNGEON_ENTRANCE) return;
+
+        //Conditions to NOT enter a dungeon
+        if (uc.getRound()%400 > 320 && !inDungeon() ) return;
+        if (data.escapeDungeon      && !inDungeon() ) return;
+
+        //Conditions to NOT exit a dungeon
+        if ( (uc.getRound()%400 < 320 && inDungeon() ) && !data.escapeDungeon) return;
+
+
+        Location[] dungeons = uc.senseVisibleTiles(2,TileType.DUNGEON_ENTRANCE);
+        for (Location entrance : dungeons) {
+
+            Direction d1 = uc.getLocation().directionTo(entrance);
+            for (Direction d2 : data.dirs) {
+                if (!d2.isEqual(Direction.ZERO) && uc.canEnterDungeon(d1, d2)) {
+                    uc.enterDungeon(d1, d2);
+                    return;
+                }
+            }
+        }
+    }
+
+    boolean inDungeon(){
+        return (uc.senseVisibleTiles(TileType.DUNGEON).length > 0);
 
     }
 

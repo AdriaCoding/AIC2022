@@ -180,8 +180,10 @@ public class Movement {
                     }
                 }
 
-                //uc.println("bestDir: " + data.dirs[bestIndex] + ", preference: " + maxPreference);
-                if (uc.canMove(data.dirs[bestIndex])) uc.move(data.dirs[bestIndex]);
+                Direction d = data.dirs[bestIndex];
+
+                //uc.println("bestDir: " + d + ", preference: " + maxPreference);
+                if (!d.isEqual(Direction.ZERO) && uc.canMove(d)) uc.move(d);
 
                 //ORIENTATION
 
@@ -270,7 +272,7 @@ public class Movement {
 
 
                 if (data.enemyBaseFound) {
-                    if (loc.distanceSquared(data.enemyBaseLoc) <= 40) tooCloseToEnemyBase = true;
+                    if (loc.distanceSquared(data.enemyBaseLoc) <= 46) tooCloseToEnemyBase = true;
                 }
             }
             else canMoveThere = false;
@@ -304,11 +306,14 @@ public class Movement {
             if (distToEnemy < currentDistToEnemy && distToEnemy < minDistToEnemy){
                 minDistToEnemy = distToEnemy;
                 closerToEnemy = true;
+                //if we are getting close to one enemy we do not care if we are getting farther to other
+                tooFarFromEnemy = false;
+                fartherToEnemy = false;
             }
 
             //RANGER STUFF
-            if (distToEnemy < uc.getType().getStat(UnitStat.MIN_ATTACK_RANGE)) tooCloseToEnemy = true;
-            if (distToEnemy > uc.getType().getStat(UnitStat.VISION_RANGE)    ) tooFarFromEnemy = true;
+            if (distToEnemy < minRange)                     tooCloseToEnemy = true;
+            if (distToEnemy > 48 && minDistToEnemy > 48)    tooFarFromEnemy = true;
 
 
             float predictedDamage = enemy.getType().getStat(UnitStat.ATTACK) - uc.getType().getStat(UnitStat.DEFENSE);
@@ -459,9 +464,11 @@ public class Movement {
             //preference for killing blows
             if (canLastHit) preference += 15;
             //preference for taking less damage
-            preference -= maxDamage / 2;
-            //preference for getting close to the enemy
+            preference -= (maxDamage/2 - alliesAround);
+            //preference for getting close to the enemy cleric
             if (!tooCloseToEnemy && closerToEnemyCleric) preference += 2;
+            //preference for getting close enough to attack the enemy
+            if (tooFarFromEnemy) preference -= 2;
             //preference for getting away from the enemy
             if (!tooFarFromEnemy && fartherToEnemy) preference += 5;
             //diagonal movement detractor

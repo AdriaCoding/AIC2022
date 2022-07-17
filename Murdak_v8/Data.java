@@ -20,18 +20,18 @@ public class Data {
 
     //CHARACTER SPECIFIC INFO
     Direction prefDir;
+    Boolean inDungeon;
     Boolean escapeDungeon;
 
     //CONSTANTS
     int accumulationRound = 250; //Round until we keep combat units around the base
-    int scoutAccumulationRound = 25; //Round until we keep scout around the base
-    int dungeonExplorationRound = 100; //Round where we start entering dungeons
+    int dungeonExplorationRound = 10; //Round where we start entering dungeons
     int shrineDistanceThreshold = 1800; //Distance at which we start destroying shrines
 
     int reinforcementDist = 4000; //Max distance to walk to enemyLoc
     int reinforcementRound = 150; //Round at which we start sending reinforcements
 
-    int seekChestDist = 49; //max distance at which scouts go open chests
+    int seekChestDist = 64; //max distance at which scouts go open chests
     int seekShrineDist = 49; //max distance at which units go conquer shrines
 
     int rangerLvlThreshold = 40;    //minimum reputation we need to have to upgrade ranger
@@ -52,6 +52,12 @@ public class Data {
     int nUnits,     nScouts,      nBarbarians,     nRangers;
     int nMages,     nKnights,     nAssassins,      nClerics;
 
+    // Map info
+    public class Tile{
+        boolean negativecoords;
+        TileType tileType;
+
+    }
     // Shrines info
     int[] shrineCh = {24,44}; int lastShrine = shrineCh[0];
 
@@ -92,6 +98,7 @@ public class Data {
 
         //Explorer initialization
         prefDir = tools.randomDir(); //TODO set to unexplored movable tile
+        inDungeon = false;
         escapeDungeon = false;
     }
 
@@ -129,8 +136,10 @@ public class Data {
 
         baseInDanger = (uc.readOnSharedArray(baseDangerCh) == 1);
 
+        inDungeon = (uc.senseVisibleTiles(TileType.DUNGEON).length > 0);
+
         //Unit specific update (maybe move out of updateGeneral)
-        if(uc.getRound()%100 == 0) escapeDungeon = false;
+        if(uc.getRound()%50 == 0) escapeDungeon = false;
 
     }
 

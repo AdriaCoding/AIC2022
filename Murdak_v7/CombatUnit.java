@@ -72,7 +72,7 @@ public class CombatUnit extends Murdak_v7.Unit {
 
         ArtifactInfo[] stuff = uc.getArtifacts();
         if (stuff.length > 0 && uc.canUseArtifact(0) ){
-            uc.println(uc.getType()+" ID " +uc.getInfo().getID() + " used an artifact and got "+ stuff[0].getStat()+" +"+stuff[0].getBonus());
+            //uc.println(uc.getType()+" ID " +uc.getInfo().getID() + " used an artifact and got "+ stuff[0].getStat()+" +"+stuff[0].getBonus());
             uc.useArtifact(0);
         }
 

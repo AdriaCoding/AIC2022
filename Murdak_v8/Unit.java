@@ -146,7 +146,7 @@ public class Unit {
 
     void reportEnemyLocation(){
 
-
+        if(data.inDungeon) return;
 
         int r = (int) uc.getType().getStat(UnitStat.VISION_RANGE);
 
@@ -161,11 +161,15 @@ public class Unit {
             }
         } else{
             UnitInfo[] enemiesOnSight = uc.senseUnits(r, data.allyTeam, true);
-            if (enemiesOnSight.length > 0) {
-                Location loc = enemiesOnSight[0].getLocation();
+            for (UnitInfo enemy : enemiesOnSight) if(!uc.isObstructed(uc.getLocation(),enemy.getLocation())) {
+
+                if(enemy.getType() == UnitType.BASE) continue;
+
+                Location loc = enemy.getLocation();
                 uc.writeOnSharedArray(data.enemyLocCh, tools.encodeLoc(loc));
                 uc.writeOnSharedArray(data.enemyFoundCh, 1);
                 data.enemyFound = true;
+                return;
             }
         }
 

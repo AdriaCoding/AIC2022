@@ -91,10 +91,10 @@ public class Base extends Murdak_v7.Unit {
 
     void spawnUnits(){
         //TODO millorar spawn rates dels diferents tipus de unitats
-        if (data.nUnits % 5 == 0 && data.nScouts < 3) trySpawnExplorer();
-        else if (data.nUnits % 3 == 1) trySpawnBarbarian();
-        else if (data.nUnits % 3 == 2) trySpawnKnight();
-        else trySpawnRanger();
+        if (data.nUnits % 6 == 0 && data.nScouts <= 2)          trySpawnExplorer();
+        else if (data.nUnits % 5 == 0 && data.nKnights > 1)     trySpawnBarbarian();
+        else if (data.nUnits % 5 == 1 || data.nUnits%5 == 4)    trySpawnKnight();
+        else                                                    trySpawnRanger();
     }
 
     void trySpawnRanger() {

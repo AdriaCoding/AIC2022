@@ -22,13 +22,13 @@ public class Barbarian extends CombatUnit {
 
             attack();
 
-            abilityOne();
+            //abilityOne();
 
             move();
 
             attack();
 
-            abilityOne();
+            //abilityOne();
 
             getShrine();
 
