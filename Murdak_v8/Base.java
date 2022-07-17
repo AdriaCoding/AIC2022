@@ -28,23 +28,7 @@ public class Base extends Unit {
 
             if (uc.getRound() == 1) senseStuff();
 
-            /*
-            int i = data.baseBFSCh;
-            boolean found = false;
-            String content = "";
-            while(!found){
-                if (uc.readOnSharedArray(i) == 0) found = true;
-                else content = content + Integer.toString(uc.readOnSharedArray(i)) + ", ";
-                i += 1;
-            }
-            if (!content.equals("")) uc.println("["+content +"] round = " + uc.getRound());
-            if (uc.getRound() == 2){
-                uc.println("La base està a " + tools.encodeLoc(data.allyBase));
-                for (int i =0; i <9 ; ++i){
-                    uc.println("La direcció " + tools.dirsBFS[i] + " torna " + tools.encodeLoc(data.allyBase.add(tools.dirsBFS[i])));
-                }
-            }
-            */
+            //doNotPutCodeInRun();
 
             //falla a la ronda 2 por algún misterioso motivo
             if (uc.getRound() > 4)   tools.baseBFS(tools.encodeLoc(data.allyBase), data.baseBFSCh);
@@ -60,6 +44,25 @@ public class Base extends Unit {
         reportDanger();
         reportAccumulationLocation();
         reportEnemies();
+    }
+
+    //canvia el nom al que fa aixo que tenies comentat si ho vols guardar
+    void doNotPutCodeInRun(){
+        int a = data.baseBFSCh;
+        boolean found = false;
+        StringBuilder content = new StringBuilder();
+        while(!found){
+            if (uc.readOnSharedArray(a) == 0) found = true;
+            else content.append(Integer.toString(uc.readOnSharedArray(a))).append(", ");
+            a += 1;
+        }
+        if (!content.toString().equals("")) uc.println("["+content +"] round = " + uc.getRound());
+        if (uc.getRound() == 2){
+            uc.println("La base esta a " + tools.encodeLoc(data.allyBase));
+            for (int i =0; i <9 ; ++i){
+                uc.println("La direccio " + tools.dirsBFS[i] + " torna " + tools.encodeLoc(data.allyBase.add(tools.dirsBFS[i])));
+            }
+        }
     }
 
     void resetDynamicChannels(){
@@ -112,7 +115,7 @@ public class Base extends Unit {
     void spawnUnits(){
         //TODO millorar spawn rates dels diferents tipus de unitats
         if (data.nUnits % 6 == 0 && data.nScouts <= 2)          trySpawnExplorer();
-        else if (data.nUnits % 5 == 0 && data.nKnights > 1)     trySpawnBarbarian();
+        else if (data.nUnits % 5 == 0 && data.nKnights > 1 )    trySpawnBarbarian();
         else if (data.nUnits % 5 == 1 || data.nUnits%5 == 4)    trySpawnKnight();
         else                                                    trySpawnRanger();
     }

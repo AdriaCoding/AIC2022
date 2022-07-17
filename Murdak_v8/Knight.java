@@ -17,6 +17,8 @@ public class Knight extends CombatUnit {
 
             data.update();
 
+            //BFS_Direction();
+
             report();
 
             attack();

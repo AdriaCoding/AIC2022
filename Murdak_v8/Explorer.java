@@ -15,6 +15,8 @@ public class Explorer extends CombatUnit {
 
             data.update();
 
+            //BFS_Direction();
+
             report();
 
             enterDungeon();
@@ -35,10 +37,8 @@ public class Explorer extends CombatUnit {
 
             senseStuff();
 
-            if (data.currentDungeon >= 0 && uc.getRound() > 20){      //cd == -1 if there is no dungeon
-                int targetLocCode = uc.readOnSharedArray(data.dungeonCh[data.currentDungeon])%100000;
-                if (targetLocCode != 0) tools.dungeonBFS(targetLocCode, data.currentDungeon);
-            }
+            BFS_Stuff();
+
             uc.yield();
         }
 
@@ -68,6 +68,14 @@ public class Explorer extends CombatUnit {
 
     }
 
+    //Posali el nom que toca a aixo
+    void BFS_Stuff(){
+        if (data.currentDungeon >= 0 && uc.getRound() > 20){      //cd == -1 if there is no dungeon
+            int targetLocCode = uc.readOnSharedArray(data.dungeonCh[data.currentDungeon])%100000;
+            if (targetLocCode != 0) tools.dungeonBFS(targetLocCode, data.currentDungeon);
+        }
+    }
+
     boolean seekChest(){
         ChestInfo[] chests = uc.senseChests(data.seekChestDist);
         for (ChestInfo chest : chests) {
@@ -87,16 +95,16 @@ public class Explorer extends CombatUnit {
         if (tile == TileType.DUNGEON_ENTRANCE) return false;
 
         //Conditions to NOT enter a dungeon
-        if (uc.getRound()%400 > 320 && !inDungeon() ) return false;
-        if (data.escapeDungeon      && !inDungeon() ) return false;
+        if (uc.getRound()%400 > 320 && !data.inDungeon ) return false;
+        if (data.escapeDungeon      && !data.inDungeon ) return false;
 
         //Conditions to NOT exit a dungeon
-        if ( (uc.getRound()%400 < 320 && inDungeon() ) && !data.escapeDungeon) return false;
+        if ( (uc.getRound()%400 < 320 && data.inDungeon ) && !data.escapeDungeon) return false;
 
 
         Location[] dungeons = uc.senseVisibleTiles(TileType.DUNGEON_ENTRANCE);
         for (Location entrance : dungeons) {
-            if (!inDungeon() ) {
+            if (!data.inDungeon ) {
                 if (uc.readOnSharedArray(tools.encodeLoc(entrance))%10 != 8){
                     data.currentDungeon = data.saveDungeon(entrance);
                 }
@@ -107,7 +115,7 @@ public class Explorer extends CombatUnit {
                 for (Direction d2 : data.dirs) {
                     if (!d2.isEqual(Direction.ZERO) && uc.canEnterDungeon(d1, d2)) {
                         uc.enterDungeon(d1, d2);
-                        if (inDungeon()){
+                        if (data.inDungeon){
                             Location dungeonExit = uc.getLocation().add(d2.opposite());
                             uc.writeOnSharedArray(tools.encodeLoc(dungeonExit),
                                     8 + tools.encodeLoc(entrance)*10);
@@ -128,7 +136,7 @@ public class Explorer extends CombatUnit {
 
     void evaluateDungeon(int dungeonIndex){
 
-        if(!inDungeon() ) return;
+        if(!data.inDungeon ) return;
 
         int dungeonChestDist = 36;
         int dungeonEnemyDist = 64;
@@ -177,11 +185,11 @@ public class Explorer extends CombatUnit {
         if (tile == TileType.DUNGEON_ENTRANCE) return;
 
         //Conditions to NOT enter a dungeon
-        if (uc.getRound()%400 > 320 && !inDungeon() ) return;
-        if (data.escapeDungeon      && !inDungeon() ) return;
+        if (uc.getRound()%400 > 320 && !data.inDungeon ) return;
+        if (data.escapeDungeon      && !data.inDungeon ) return;
 
         //Conditions to NOT exit a dungeon
-        if ( (uc.getRound()%400 < 320 && inDungeon() ) && !data.escapeDungeon) return;
+        if ( (uc.getRound()%400 < 320 && data.inDungeon ) && !data.escapeDungeon) return;
 
 
         Location[] dungeons = uc.senseVisibleTiles(2,TileType.DUNGEON_ENTRANCE);
@@ -197,10 +205,6 @@ public class Explorer extends CombatUnit {
         }
     }
 
-    boolean inDungeon(){
-        return (uc.senseVisibleTiles(TileType.DUNGEON).length > 0);
-
-    }
 
 }
 

@@ -17,6 +17,8 @@ public class Ranger extends CombatUnit {
 
             data.update();
 
+            //BFS_Direction();
+
             report();
 
             attack();

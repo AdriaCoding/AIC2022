@@ -85,7 +85,7 @@ public class Unit {
     }
     void senseStuff() {
         Location unitLoc = uc.getLocation();
-        if (uc.senseTileTypeAtLocation(unitLoc).equals(TileType.DUNGEON)) return;
+        if (data.inDungeon) return;
         if (uc.readOnSharedArray(tools.encodeLoc(unitLoc))%10 == 0) {
             for (Location loc : uc.getVisibleLocations()) {
                 if (uc.isOutOfMap(loc)) continue;

@@ -9,13 +9,16 @@ public class CombatUnit extends Unit {
     void report() {
         reportMyself();
         reportEnemies();
-        if(!uc.getType().equals(UnitType.BASE) && !uc.senseTileTypeAtLocation(uc.getLocation()).equals(TileType.DUNGEON)) {
+        //reportEnvironment();
+    }
+
+    void BFS_Direction(){
+        if(!data.inDungeon) {
             int dircode = uc.readOnSharedArray(tools.encodeLoc(uc.getLocation())) / 10;
             if (dircode > 0 && dircode < 9) {
-                        uc.setOrientation(tools.dirsBFS[dircode - 1].opposite());
+                uc.setOrientation(tools.dirsBFS[dircode - 1].opposite());
             }
         }
-        //reportEnvironment();
     }
 
     // placeholder, this is overridden for each different unit

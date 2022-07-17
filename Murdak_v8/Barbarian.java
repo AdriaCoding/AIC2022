@@ -18,6 +18,8 @@ public class Barbarian extends CombatUnit {
 
             data.update();
 
+            //BFS_Direction();
+
             report();
 
             attack();
@@ -35,6 +37,8 @@ public class Barbarian extends CombatUnit {
             getChest();
 
             useArtifact();
+
+            //levelUp();
 
             //enterDungeon();
 
@@ -62,13 +66,15 @@ public class Barbarian extends CombatUnit {
         UnitInfo[] allies = uc.senseUnits(8,data.allyTeam);
 
         if(enemies.length > 3 && allies.length == 0) {
-            if (uc.getInfo().getLevel() < 2) {
-                if (uc.canLevelUp() && uc.getReputation() > data.barbarianLvlThreshold) uc.levelUp();
-                else if (uc.canUseFirstAbility(uc.getLocation())) uc.useFirstAbility(uc.getLocation());
-
-            } else if (uc.canUseFirstAbility(uc.getLocation())) uc.useFirstAbility(uc.getLocation());
+            if (uc.canUseFirstAbility(uc.getLocation())) uc.useFirstAbility(uc.getLocation());
         }
 
+    }
+
+    void levelUp(){
+        if(!data.enemyFound || uc.getInfo().getLevel() >= 2) return;
+        if(uc.senseUnits(32,data.allyTeam,true).length > 0) return;
+        if (uc.canLevelUp() && uc.getReputation() > data.barbarianLvlThreshold) uc.levelUp();
     }
 
 }
