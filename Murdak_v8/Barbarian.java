@@ -1,22 +1,20 @@
-package Murdak_v7;
+package Murdak_v8;
 
 import aic2022.user.UnitController;
 import aic2022.user.UnitInfo;
 
-public class Barbarian extends Murdak_v7.CombatUnit {
+public class Barbarian extends CombatUnit {
 
     public Barbarian (UnitController _uc) {
         this.uc = _uc;
-        this.data = new Murdak_v7.Data(uc);
-        this.tools = new Murdak_v7.Tools(uc, data);
-        this.movement = new Murdak_v7.Movement(uc, data);
+        this.data = new Data(uc);
+        this.tools = new Tools(uc, data);
+        this.movement = new Movement(uc, data);
     }
 
     void run() {
 
         while (true) {
-
-            if(uc.getInfo().getCurrentAttackCooldown() >10) uc.println(uc.getType() + " penalty");
 
             data.update();
 
@@ -24,13 +22,13 @@ public class Barbarian extends Murdak_v7.CombatUnit {
 
             attack();
 
-            //abilityOne();
+            abilityOne();
 
             move();
 
             attack();
 
-            //abilityOne();
+            abilityOne();
 
             getShrine();
 

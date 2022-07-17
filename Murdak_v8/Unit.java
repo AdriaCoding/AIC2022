@@ -1,4 +1,4 @@
-package Murdak_v7;
+package Murdak_v8;
 
 import aic2022.user.*;
 
@@ -84,22 +84,44 @@ public class Unit {
         return 0;
     }
     void senseStuff() {
-        Location unit_loc = uc.getLocation();
-        int unit_loc_code = uc.readOnSharedArray(tools.encodeLoc(unit_loc)) % 10;
-        if (unit_loc_code == 0) {
+        Location unitLoc = uc.getLocation();
+        if (uc.senseTileTypeAtLocation(unitLoc).equals(TileType.DUNGEON)) return;
+        if (uc.readOnSharedArray(tools.encodeLoc(unitLoc))%10 == 0) {
             for (Location loc : uc.getVisibleLocations()) {
                 if (uc.isOutOfMap(loc)) continue;
                 int locCode = tools.encodeLoc(loc);
                 int tileCode = uc.readOnSharedArray(locCode);
+
                 if (tileCode == 0) {
                     uc.writeOnSharedArray(locCode, tools.tileType_code(uc.senseTileTypeAtLocation(loc)));
-                    if(loc.x == 739) uc.println("SERA ESTE EL FIN DEL HOMBRE ARAÑA");
                 }
-                if (tools.getTileType(tileCode) == TileType.SHRINE) data.saveShrine(loc);
-                if (tools.getTileType(tileCode) == TileType.DUNGEON_ENTRANCE) data.saveDungeon(loc);
-                //little chivato
+                else if (tileCode/10 != 0){         //try adding to BFS queue
+                    for(int adjLoc : tools.adjacentCodes(locCode)){
+                        if(tools.isValid(adjLoc, 1, false)){
+                            boolean stop = false;
+                            int BFSIterator = data.baseBFSCh;
+                            while (!stop){          //check valid location is not repeated
+                                int actualCode = uc.readOnSharedArray(BFSIterator);
+                                if (actualCode == locCode) stop = true;
+                                else if (actualCode != 0) ++BFSIterator;
+                                else {
+                                    uc.writeOnSharedArray(BFSIterator, locCode);
+                                    uc.writeOnSharedArray(data.baseBFSCh - 1, BFSIterator);
+                                    stop = true;
+                                }
+                            }
+                            break;
+                        }
+                    }
+                }
+                if (tools.getTileType(tileCode) == null) continue;
+                else if (tools.getTileType(tileCode) == TileType.SHRINE) data.saveShrine(loc);
+                //else if (tools.getTileType(tileCode) == TileType.DUNGEON_ENTRANCE) data.currentDungeon = data.saveDungeon(loc);
+
+
+                //Necessary Chivato
                 if (!loc.isEqual(tools.decodeLoc(locCode))) {
-                    uc.println("La codificacio a (" + loc.x + ", " + loc.y + ") Falla. El codi es: " + locCode + "\n");
+                    uc.println("El encode a (" + loc.x + ", " + loc.y + ") Falla. El codi es: " + locCode + " i el decode torna " + tools.decodeLoc(locCode) + "\n");
                 }
             }
         }
@@ -124,7 +146,7 @@ public class Unit {
 
     void reportEnemyLocation(){
 
-        if(data.inDungeon) return;
+
 
         int r = (int) uc.getType().getStat(UnitStat.VISION_RANGE);
 
@@ -139,8 +161,8 @@ public class Unit {
             }
         } else{
             UnitInfo[] enemiesOnSight = uc.senseUnits(r, data.allyTeam, true);
-            for (UnitInfo enemy : enemiesOnSight) if(!uc.isObstructed(uc.getLocation(),enemy.getLocation())) {
-                Location loc = enemy.getLocation();
+            if (enemiesOnSight.length > 0) {
+                Location loc = enemiesOnSight[0].getLocation();
                 uc.writeOnSharedArray(data.enemyLocCh, tools.encodeLoc(loc));
                 uc.writeOnSharedArray(data.enemyFoundCh, 1);
                 data.enemyFound = true;

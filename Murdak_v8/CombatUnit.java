@@ -1,14 +1,20 @@
-package Murdak_v7;
+package Murdak_v8;
 
 import aic2022.user.*;
 
-public class CombatUnit extends Murdak_v7.Unit {
+public class CombatUnit extends Unit {
 
-    Murdak_v7.Movement movement;
+    Movement movement;
 
     void report() {
         reportMyself();
         reportEnemies();
+        if(!uc.getType().equals(UnitType.BASE) && !uc.senseTileTypeAtLocation(uc.getLocation()).equals(TileType.DUNGEON)) {
+            int dircode = uc.readOnSharedArray(tools.encodeLoc(uc.getLocation())) / 10;
+            if (dircode > 0 && dircode < 9) {
+                        uc.setOrientation(tools.dirsBFS[dircode - 1].opposite());
+            }
+        }
         //reportEnvironment();
     }
 
@@ -72,7 +78,6 @@ public class CombatUnit extends Murdak_v7.Unit {
 
         ArtifactInfo[] stuff = uc.getArtifacts();
         if (stuff.length > 0 && uc.canUseArtifact(0) ){
-            uc.println(uc.getType()+" ID " +uc.getInfo().getID() + " used an artifact and got "+ stuff[0].getStat()+" +"+stuff[0].getBonus());
             uc.useArtifact(0);
         }
 

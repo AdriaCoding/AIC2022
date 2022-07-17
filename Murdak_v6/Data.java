@@ -20,11 +20,12 @@ public class Data {
 
     //CHARACTER SPECIFIC INFO
     Direction prefDir;
+    Boolean inDungeon;
     Boolean escapeDungeon;
 
     //CONSTANTS
     int accumulationRound = 250; //Round until we keep combat units around the base
-    int scoutAccumulationRound = 25; //Round until we keep scout around the base
+    int scoutAccumulationRound = 10; //Round until we keep scout around the base
     int dungeonExplorationRound = 100; //Round where we start entering dungeons
     int shrineDistanceThreshold = 1800; //Distance at which we start destroying shrines
 
@@ -87,6 +88,7 @@ public class Data {
 
         //Explorer initialization
         prefDir = tools.randomDir();
+        inDungeon = false;
         escapeDungeon = false;
     }
 
@@ -124,8 +126,10 @@ public class Data {
 
         baseInDanger = (uc.readOnSharedArray(baseDangerCh) == 1);
 
+        inDungeon = (uc.senseTileTypeAtLocation(uc.getLocation()) == TileType.DUNGEON);
+
         //Unit specific update (maybe move out of updateGeneral)
-        if(uc.getRound()%100 == 0) escapeDungeon = false;
+        if(uc.getRound()%50 == 0) escapeDungeon = false;
 
     }
 

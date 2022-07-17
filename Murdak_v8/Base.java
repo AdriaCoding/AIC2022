@@ -1,13 +1,13 @@
-package Murdak_v7;
+package Murdak_v8;
 
 import aic2022.user.*;
 
-public class Base extends Murdak_v7.Unit {
+public class Base extends Unit {
 
     public Base (UnitController _uc) {
         this.uc = _uc;
-        this.data = new Murdak_v7.Data(uc);
-        this.tools = new Murdak_v7.Tools(uc, data);
+        this.data = new Data(uc);
+        this.tools = new Tools(uc, data);
     }
 
     void run() {
@@ -24,11 +24,26 @@ public class Base extends Murdak_v7.Unit {
 
             getShrine();
 
-            if (uc.getRound() == 0) reportMyself();
+            if (uc.getRound() == 1) reportMyself();
 
-            //if (uc.getRound() == 0) senseStuff();
+            if (uc.getRound() == 1) senseStuff();
 
-            //if (uc.getRound() > 3) tools.BFS(data.allyBase, data.baseBFSCh); //falla a la ronda 2 por algún misterioso motivo
+//            int i = data.baseBFSCh;
+//            boolean found = false;
+//            String content = "";
+//            while(!found){
+//                if (uc.readOnSharedArray(i) == 0) found = true;
+//                else content = content + Integer.toString(uc.readOnSharedArray(i)) + ", ";
+//                i += 1;
+//            }
+//            if (!content.equals("")) uc.println("["+content +"] round = " + uc.getRound());
+//            if (uc.getRound() == 2){
+//                uc.println("La base està a " + tools.encodeLoc(data.allyBase));
+//                for (int i =0; i <9 ; ++i){
+//                    uc.println("La direcció " + tools.dirsBFS[i] + " torna " + tools.encodeLoc(data.allyBase.add(tools.dirsBFS[i])));
+//                }
+//            }
+            if (uc.getRound() > 4) tools.baseBFS(tools.encodeLoc(data.allyBase), data.baseBFSCh); //falla a la ronda 2 por algún misterioso motivo
 
             uc.yield();
         }
@@ -91,6 +106,7 @@ public class Base extends Murdak_v7.Unit {
 
     void spawnUnits(){
         //TODO millorar spawn rates dels diferents tipus de unitats
+
         if (data.nUnits % 5 == 0 && data.nScouts < 3) trySpawnExplorer();
         else if (data.nUnits % 3 == 1) trySpawnBarbarian();
         else if (data.nUnits % 3 == 2) trySpawnKnight();

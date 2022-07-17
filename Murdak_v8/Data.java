@@ -1,11 +1,11 @@
-package Murdak_v7;
+package Murdak_v8;
 
 import aic2022.user.*;
 
 public class Data {
 
     UnitController uc;
-    Murdak_v7.Tools tools;
+    Tools tools;
 
     //GENERAL INFO
     Direction[] dirs = Direction.values();
@@ -20,18 +20,18 @@ public class Data {
 
     //CHARACTER SPECIFIC INFO
     Direction prefDir;
-    Boolean inDungeon;
     Boolean escapeDungeon;
 
     //CONSTANTS
     int accumulationRound = 250; //Round until we keep combat units around the base
-    int dungeonExplorationRound = 10; //Round where we start entering dungeons
+    int scoutAccumulationRound = 25; //Round until we keep scout around the base
+    int dungeonExplorationRound = 100; //Round where we start entering dungeons
     int shrineDistanceThreshold = 1800; //Distance at which we start destroying shrines
 
     int reinforcementDist = 4000; //Max distance to walk to enemyLoc
     int reinforcementRound = 150; //Round at which we start sending reinforcements
 
-    int seekChestDist = 64; //max distance at which scouts go open chests
+    int seekChestDist = 49; //max distance at which scouts go open chests
     int seekShrineDist = 49; //max distance at which units go conquer shrines
 
     int rangerLvlThreshold = 40;    //minimum reputation we need to have to upgrade ranger
@@ -52,17 +52,25 @@ public class Data {
     int nUnits,     nScouts,      nBarbarians,     nRangers;
     int nMages,     nKnights,     nAssassins,      nClerics;
 
-    // Map info
-    public class Tile{
-        boolean negativecoords;
-        TileType tileType;
-
-    }
     // Shrines info
     int[] shrineCh = {24,44}; int lastShrine = shrineCh[0];
 
-    // Dungeons info
-    int[] dungeonCh = {45, 85}; int lastDungeon = dungeonCh[0];
+
+    //MAP CHANNELS - from 10000 to 18000
+    //  the 1st digit we save is the code of that tile type "t", the 2nd is the direction
+    //  towards our base ">", and the next three the distance to our base, "ddd".
+    //  from digits 6 to 9 we save the same info regarding the enemy base.
+    //  So, the format is "ddd>ddd>t"
+
+    //DUNGEON MAP CHANNELS - from 20000 to 28000
+    //  the n-th digits of ch "2xxyy" represents the direction towards the n-th dungeon.
+
+    //BFS CHANNELS - from 100000 to _
+    int baseBFSCh =         100000;
+    int enemyBaseBFSCh =    110000;
+    int[] dungeonCh = {50,51,52,53,54,55,56,57};      // We can target up to 8 dungeons.
+    int currentDungeon = -1;
+    int[] dungeonBFSCh = {120000, 130000, 140000, 150000, 160000, 170000, 180000, 190000};
 
     //GENERAL CHANNELS
     int accumulationCh = 100; // Ch 100
@@ -71,14 +79,11 @@ public class Data {
     int enemyBaseFoundCh = 104;     int enemyBaseLocCh = 105;   //Ch 104 & 105
     int baseDangerCh = 106;
 
-    //MAP CHANNELS - from 10000 to 18000
 
-    //BFS CHANNELS - from 100000 to _
-    int baseBFSCh = 100000;
 
     public Data (UnitController _uc) {
         uc = _uc;
-        tools = new Murdak_v7.Tools(uc, this);
+        tools = new Tools(uc, this);
         ID = uc.getInfo().getID();
         type = uc.getType();
         allyTeam = uc.getTeam();
@@ -86,8 +91,7 @@ public class Data {
         currentRound = uc.getRound();
 
         //Explorer initialization
-        prefDir = tools.randomDir();
-        inDungeon = false;
+        prefDir = tools.randomDir(); //TODO set to unexplored movable tile
         escapeDungeon = false;
     }
 
@@ -125,10 +129,8 @@ public class Data {
 
         baseInDanger = (uc.readOnSharedArray(baseDangerCh) == 1);
 
-        inDungeon = (uc.senseVisibleTiles(TileType.DUNGEON).length > 0);
-
         //Unit specific update (maybe move out of updateGeneral)
-        if(uc.getRound()%50 == 0) escapeDungeon = false;
+        if(uc.getRound()%100 == 0) escapeDungeon = false;
 
     }
 
@@ -174,8 +176,20 @@ public class Data {
     void saveChest (ChestInfo c){
         //TODO
     }
-    void saveDungeon (Location loc){
-        //TODO
+    int saveDungeon (Location loc){ //returns dungeon index, from 0 to 7
+        for(int i = 0; i < 8; ++i){
+            if(uc.readOnSharedArray(dungeonCh[i]) == 0){  //found a new dungeon!
+                uc.writeOnSharedArray(dungeonCh[i], tools.encodeLoc(loc));
+                uc.println("Adding element to dungeonArray: "+uc.readOnSharedArray(dungeonCh[0]) +","+ uc.readOnSharedArray(dungeonCh[1]) +","+ uc.readOnSharedArray(dungeonCh[2]) +","+ uc.readOnSharedArray(dungeonCh[3]) +","+ uc.readOnSharedArray(dungeonCh[4]) +","+ uc.readOnSharedArray(dungeonCh[5]) +","+ uc.readOnSharedArray(dungeonCh[6]) +","+ uc.readOnSharedArray(dungeonCh[7]));
+                return i;
+            }
+            if(uc.readOnSharedArray(dungeonCh[i])%100000 == tools.encodeLoc(loc)){
+                return i;
+            }
+
+        }
+        uc.println("Exception in saveDungeon(dungeonLoc), probably found a ninth Dungeon.");
+        return 0;
     }
 
 }

@@ -120,7 +120,7 @@ public class Movement {
                 micro[i] = new MicroInfo(newLoc);
             }
 
-            for (int i = 0; i < Math.min(unitsAround.length,15); ++i) {
+            for (int i = 0; i < Math.min(unitsAround.length,10); ++i) {
                 UnitInfo unit = unitsAround[i];
                 if(unit.getTeam() == data.allyTeam) {
                     for (MicroInfo m : micro) m.updateAlly();
@@ -128,7 +128,10 @@ public class Movement {
                 else{
                     if(! uc.isObstructed(unit.getLocation(), uc.getLocation() ) ) {
                         combat = true;
-                        for (MicroInfo m : micro) m.updateEnemy(unit);
+                        for (MicroInfo m : micro){
+                            if(unit.getType() == UnitType.CLERIC) m.updateEnemyCleric(unit);
+                            else m.updateEnemy(unit);
+                        }
                     }
                 }
             }
@@ -216,10 +219,14 @@ public class Movement {
         boolean canLastHit = false;
         //if we are closer to the enemy than we are now
         boolean closerToEnemy = false;
+        //if we are closer to the enemy cleric than we are now
+        boolean closerToEnemyCleric = false;
         //if we are farther to the enemy than we are now
         boolean fartherToEnemy = false;
         //if we are too close to attack to an enemy
         boolean tooCloseToEnemy = false;
+        //if we are too far to attack to an enemy after a step
+        boolean tooFarFromEnemy = false;
         //moving diagonally is more expensive, so we try to avoid it.
         boolean isDiagonal;
         //The type of cell it is
@@ -278,7 +285,10 @@ public class Movement {
 
             if (distToEnemy < currentDistToEnemy) closerToEnemy = true;
             if (distToEnemy > currentDistToEnemy) fartherToEnemy = true;
+
+            //RANGER STUFF
             if (distToEnemy < uc.getType().getStat(UnitStat.MIN_ATTACK_RANGE)) tooCloseToEnemy = true;
+            if (distToEnemy > uc.getType().getStat(UnitStat.VISION_RANGE)    ) tooFarFromEnemy = true;
 
 
             float predictedDamage = enemy.getType().getStat(UnitStat.ATTACK) - uc.getType().getStat(UnitStat.DEFENSE);
@@ -292,6 +302,19 @@ public class Movement {
             if (distToEnemy <= enemyMaxRange && distToEnemy >= enemyMinRange) {
                 maxDamage += predictedDamage;
             }
+        }
+
+        void updateEnemyCleric(UnitInfo enemy) {
+
+            if (!canMoveThere) return;
+            Location enemyLocation = enemy.getLocation();
+
+            int distToEnemy = loc.distanceSquared(enemyLocation);
+            int currentDistToEnemy = uc.getLocation().distanceSquared(enemyLocation);
+
+            if (distToEnemy < currentDistToEnemy) closerToEnemyCleric = true;
+            if (distToEnemy < uc.getType().getStat(UnitStat.MIN_ATTACK_RANGE)) tooCloseToEnemy = true;
+
         }
 
         void updateAlly() {
@@ -311,6 +334,8 @@ public class Movement {
             preference -= maxDamage / 10;
             //preference for getting close (+) or apart (-) from the enemy
             if (closerToEnemy) preference += 10;
+            //preference for getting close (+) or apart (-) from clerics
+            if (closerToEnemyCleric) preference += 20;
             //diagonal movement detractor
             if (isDiagonal) preference -= 0.5;
             //forest tile detractor
@@ -335,6 +360,8 @@ public class Movement {
             preference -= maxDamage / 6;
             //preference for getting close (+) or apart (-) from the enemy
             if (closerToEnemy) preference += 20;
+            //preference for getting close (+) or apart (-) from Clerics
+            if (closerToEnemyCleric) preference += 40;
             //diagonal movement detractor
             if (isDiagonal) preference -= 0.5;
             //forest tile detractor
@@ -360,9 +387,9 @@ public class Movement {
             //preference for taking less damage
             preference -= maxDamage / 5;
             //preference for getting close to the enemy
-            if (closerToEnemy) preference += 0;
+            if (!tooCloseToEnemy && closerToEnemyCleric) preference += 2;
             //preference for getting away from the enemy
-            if (fartherToEnemy) preference += 0;
+            if (!tooFarFromEnemy && fartherToEnemy) preference += 5;
             //diagonal movement detractor
             if (isDiagonal) preference -= 0.5;
             //forest tile protractor
@@ -384,17 +411,19 @@ public class Movement {
             //preference for killing blows
             if (canLastHit) preference += 25;
             //preference for taking less damage
-            preference -= maxDamage / 4;
+            preference -= maxDamage;
             //preference for getting close to the enemy
             if (closerToEnemy) preference -= 10;
             //preference for getting away from the enemy
             if (fartherToEnemy) preference += 10;
+            //preference for getting close (+) or apart (-) from Clerics
+            if (closerToEnemyCleric) preference += 5;
             //diagonal movement detractor
             if (isDiagonal) preference -= 0.5;
             //forest tile detractor
             if (tile == TileType.FOREST) preference -= 0.5;
             //Preference for not getting to close to the enemy base
-            if (tooCloseToEnemyBase) preference -= 20;
+            if (tooCloseToEnemyBase) preference -= 100;
 
             return preference;
         }

@@ -1,4 +1,4 @@
-package Murdak_v6;
+package Murdak_v8;
 
 import aic2022.user.*;
 
@@ -9,7 +9,7 @@ public class Explorer extends CombatUnit {
         this.tools = new Tools(uc, data);
         this.movement = new Movement(uc, data);
     }
-
+    int cd = -1;        // the dungeon is currently being considered
     void run() {
 
         while (true) {
@@ -18,7 +18,7 @@ public class Explorer extends CombatUnit {
 
             report();
 
-            evaluateDungeon();
+            evaluateDungeon(cd);
 
             attack();
 
@@ -32,8 +32,12 @@ public class Explorer extends CombatUnit {
 
             useArtifact();
 
-            //senseStuff();
+            senseStuff();
 
+            if (cd >= 0 && uc.getRound() > 20){      //cd == -1 if there is no dungeon
+                int targetLocCode = uc.readOnSharedArray(data.dungeonCh[cd])%100000;
+                if (targetLocCode != 0) tools.dungeonBFS(targetLocCode, cd);
+            }
             uc.yield();
         }
 
@@ -53,12 +57,12 @@ public class Explorer extends CombatUnit {
 
     @Override
     void move(){
-        if(!data.inDungeon && movement.doMicro())   return;
-        if(seekDungeon() )                          return;
-        if(seekChest() )                            return;
-        if(data.inDungeon && movement.doMicro() )   return;
-        if(seekShrine() )                           return;
-        if(accumulate() )                           return;
+
+        if(seekDungeon() )      return;
+        if(seekChest() )        return;
+        if(movement.doMicro() ) return; //TEST maybe it needs to go first still
+        if(seekShrine() )       return;
+        if(accumulate() )       return;
         movement.explore();
 
     }
@@ -88,6 +92,7 @@ public class Explorer extends CombatUnit {
         if(uc.getRound() < data.dungeonExplorationRound) return false;
 
         TileType tile = uc.senseTileTypeAtLocation(uc.getLocation());
+        boolean isInDungeon = tile.equals(TileType.DUNGEON);
 
         if (tile == TileType.DUNGEON_ENTRANCE) return false;
 
@@ -101,12 +106,23 @@ public class Explorer extends CombatUnit {
 
         Location[] dungeons = uc.senseVisibleTiles(TileType.DUNGEON_ENTRANCE);
         for (Location entrance : dungeons) {
+            if (!isInDungeon) {
+                if (uc.readOnSharedArray(tools.encodeLoc(entrance))%10 != 8){
+                    cd = data.saveDungeon(entrance);
+                }
+            }
 
             if(uc.getLocation().distanceSquared(entrance) <= 2){
                 Direction d1 = uc.getLocation().directionTo(entrance);
                 for (Direction d2 : data.dirs) {
                     if (!d2.isEqual(Direction.ZERO) && uc.canEnterDungeon(d1, d2)) {
                         uc.enterDungeon(d1, d2);
+                        if (isInDungeon){
+                            Location dungeonExit = uc.getLocation().add(d2.opposite());
+                            uc.writeOnSharedArray(tools.encodeLoc(dungeonExit),
+                                    8 + tools.encodeLoc(entrance)*10);
+                            // 8 is a special TileType code for dungeon exits.
+                        }
                         return true;
                     }
                 }
@@ -120,7 +136,7 @@ public class Explorer extends CombatUnit {
         return false;
     }
 
-    void evaluateDungeon(){
+    void evaluateDungeon(int di){   //di stands for dungeon index
 
         if(uc.senseTileTypeAtLocation(uc.getLocation()) != TileType.DUNGEON) return;
 

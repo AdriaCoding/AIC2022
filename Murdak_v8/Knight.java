@@ -1,4 +1,4 @@
-package Murdak_v7;
+package Murdak_v8;
 
 import aic2022.user.*;
 
@@ -33,8 +33,6 @@ public class Knight extends CombatUnit {
 
             useArtifact();
 
-            levelUp();
-
             //enterDungeon();
 
             uc.yield();
@@ -54,27 +52,27 @@ public class Knight extends CombatUnit {
         uc.writeOnSharedArray(data.knightResetCh, 0);
     }
 
-    void levelUp(){
-        if(!data.enemyFound || uc.getInfo().getLevel() >= 2) return;
-        if(uc.senseUnits(50,data.allyTeam,true).length > 0) return;
-        if(uc.canLevelUp() && uc.getReputation() > data.knightLvlThreshold ) uc.levelUp();
-    }
-
     void abilityOne(){
 
-        if(uc.getInfo().getLevel() < 2) return;
         UnitInfo[] units = uc.senseUnits(50,data.allyTeam, true);
 
         for (UnitInfo u : units){
             if ( (u.getType() == UnitType.RANGER || u.getType() == UnitType.MAGE)
                  && !uc.isObstructed(uc.getLocation(), u.getLocation() ) ){
+                if(uc.getInfo().getLevel() < 2){
+                    if(uc.canLevelUp() && uc.getReputation() > data.knightLvlThreshold ) uc.levelUp();
 
-                Direction dir = uc.getLocation().directionTo(u.getLocation());
-                Location loc = uc.getLocation().add(dir);
-                if(data.enemyBaseFound && loc.distanceSquared(data.enemyBaseLoc) < 50) continue;
-                if( uc.canUseFirstAbility(loc) ) uc.useFirstAbility(loc);
-
-                return;
+                    Direction dir = uc.getLocation().directionTo(u.getLocation());
+                    Location loc = uc.getLocation().add(dir);
+                    if( uc.canUseFirstAbility(loc) ) uc.useFirstAbility(loc);
+                    return;
+                }
+                else{
+                    Direction dir = uc.getLocation().directionTo(u.getLocation());
+                    Location loc = uc.getLocation().add(dir);
+                    if( uc.canUseFirstAbility(loc) ) uc.useFirstAbility(loc);
+                    return;
+                }
 
             }
 

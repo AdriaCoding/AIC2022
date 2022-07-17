@@ -1,6 +1,8 @@
-package Murdak_v6;
+package Murdak_v8;
 
-import aic2022.user.*;
+import aic2022.user.UnitController;
+import aic2022.user.UnitInfo;
+import aic2022.user.UnitType;
 
 public class Ranger extends CombatUnit {
 
@@ -33,7 +35,9 @@ public class Ranger extends CombatUnit {
 
             useArtifact();
 
-            //enterDungeon();
+            if (data.enemyBaseFound){
+                tools.baseBFS(tools.encodeLoc(data.enemyBaseLoc), data.enemyBaseBFSCh);
+            }
 
             uc.yield();
         }
@@ -43,7 +47,6 @@ public class Ranger extends CombatUnit {
     @Override
     void move(){
         if(movement.doMicro() ) return;
-        if(seekShrine())        return;
         if(reinforce() )        return;
         if(accumulate() )       return;
         movement.explore();
@@ -59,25 +62,6 @@ public class Ranger extends CombatUnit {
         uc.writeOnSharedArray(data.rangerReportCh, uc.readOnSharedArray(data.rangerReportCh)+1);
         // Reset Next Slot
         uc.writeOnSharedArray(data.rangerResetCh, 0);
-    }
-
-    @Override
-    boolean seekShrine(){
-        ShrineInfo[] shrines = uc.senseShrines();
-        for (ShrineInfo shrine : shrines) {
-            if(shrine.getOwner() == data.allyTeam) continue;;
-            Location[] locs = uc.getVisibleLocations(36);
-            for ( Location loc : locs ){
-                if(!uc.isPassable(loc)) continue;
-                if(loc.distanceSquared(shrine.getLocation() ) < uc.getType().getStat(UnitStat.MIN_ATTACK_RANGE)) continue;
-                if(loc.distanceSquared(shrine.getLocation() ) > uc.getType().getStat(UnitStat.ATTACK_RANGE))     continue;
-                if(!uc.isObstructed(loc, uc.getLocation() ) ) {
-                    movement.moveTo(loc);
-                    return true;
-                }
-            }
-        }
-        return false;
     }
 
     void abilityOne(){
